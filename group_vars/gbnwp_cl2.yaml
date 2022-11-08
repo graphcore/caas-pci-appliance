@@ -1,0 +1,9 @@
+---
+# This file contains parameters common to all gbnwp-cl2:
+
+dns_base: "openstack.graphcore.ai."
+
+##
+# Required by vpod-nets, value doesn't matter in our context because we're not
+# routing the RNIC networks.
+cidr_hint: "25"

@@ -1,0 +1,38 @@
+# Modified by Graphcore Ltd.
+
+##
+# The default Terraform state key for backends that support it
+# We've added the `role_name` parameter to the StackHPC standard definition
+terraform_state_key: "cluster/{{ cluster_id }}/{{ role_name }}/tfstate"
+
+# Set up the terraform backend
+terraform_backend_type: "{{ 'consul' if 'CONSUL_HTTP_ADDR' in ansible_env else 'local' }}"
+terraform_backend_config_defaults:
+  consul:
+    path: "{{ terraform_state_key }}"
+    gzip: "true"
+  local: {}
+terraform_backend_config: "{{ terraform_backend_config_defaults[terraform_backend_type] }}"
+
+terraform_binary_directory: "{{ playbook_dir }}/bin"
+terraform_binary_path: "{{ terraform_binary_directory }}/terraform"
+# We've added the `role_name` parameter to the StackHPC standard definition
+terraform_project_path: "{{ playbook_dir }}/{{ role_name}}/terraform"
+
+terraform_state: "{{ cluster_state | default('present') }}"
+
+# The user that should be used to SSH to the cluster hosts
+cluster_ssh_user: ipuuser
+
+##
+# These are the images that will be available for user selection
+# TODO: What images do we want to base the compute appliances on?
+poplar_appliance_images:
+  - name: "Ubuntu 20.04"
+    friendly: "Focal"
+    image_name: "ubuntu20.04-azimuth-poplar"
+    image_tag: "gc_tag_latest"
+  - name: "Ubuntu 18.04"
+    friendly: "Bionic"
+    image_name: "ubuntu18.04-azimuth-poplar"
+    image_tag: "gc_tag_latest"
