@@ -54,22 +54,22 @@ resource "openstack_blockstorage_volume_v3" "data_volume" {
 #####
 
 ##
-# This block brings up a Ctrl network interface
+# This block brings up a common access network interface
 #
-data "openstack_networking_network_v2" "ctrlnet" {
-  tags = [ "ctrl", "azimuth-vpod-common-ctrl" ]
+data "openstack_networking_network_v2" "extnet" {
+  tags = [ "ext", "azimuth-node-common-ext" ]
 }
 
-data "openstack_networking_subnet_v2" "ctrlsub" {
-  tags = [ "ctrl", "azimuth-vpod-common-ctrl" ]
+data "openstack_networking_subnet_v2" "extsub" {
+  tags = [ "ext", "azimuth-node-common-ext" ]
 }
 
-resource "openstack_networking_port_v2" "ctrl" {
-  name      = "{{ cluster_name }}-{{ cluster_type }}-ctrl"
-  network_id     = data.openstack_networking_network_v2.ctrlnet.id
+resource "openstack_networking_port_v2" "ext" {
+  name      = "{{ cluster_name }}-{{ cluster_type }}-ext"
+  network_id     = data.openstack_networking_network_v2.extnet.id
   admin_state_up = "true"
   fixed_ip {
-    subnet_id = data.openstack_networking_subnet_v2.ctrlsub.id
+    subnet_id = data.openstack_networking_subnet_v2.extsub.id
   }
   port_security_enabled = "true"
   security_group_ids = [ openstack_networking_secgroup_v2.cluster_secgroup.id ]
@@ -94,8 +94,6 @@ resource "openstack_networking_port_v2" "stor" {
     subnet_id = data.openstack_networking_subnet_v2.storsub.id
   }
   port_security_enabled = "false"
-  #port_security_enabled = "true"
-  #security_group_ids = [ openstack_networking_secgroup_v2.cluster_secgroup.id ]
 }
 
 
@@ -104,7 +102,7 @@ resource "openstack_networking_port_v2" "stor" {
 #
 resource "openstack_networking_floatingip_v2" "app-fip" {
   pool = "external"
-  port_id = "${openstack_networking_port_v2.ctrl.id}"
+  port_id = "${openstack_networking_port_v2.ext.id}"
 }
 
 
@@ -129,10 +127,10 @@ resource "openstack_compute_instance_v2" "cluster_server" {
     mounts:
       - [ ephemeral0, /localdata, auto, "defaults,nofail" ]
     write_files:
-      - path: /etc/systemd/network/05-ctrl.network
+      - path: /etc/systemd/network/05-ext.network
         content: |
           [Match]
-          MACAddress=${openstack_networking_port_v2.ctrl.mac_address}
+          MACAddress=${openstack_networking_port_v2.ext.mac_address}
           [Network]
           DHCP=yes
           [DHCPv4]
@@ -207,7 +205,7 @@ resource "openstack_compute_instance_v2" "cluster_server" {
   }
 
   network {
-    port = "${openstack_networking_port_v2.ctrl.id}"
+    port = "${openstack_networking_port_v2.ext.id}"
   }
 
   network {
