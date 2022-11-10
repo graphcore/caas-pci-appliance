@@ -1,119 +1,19 @@
 # Modified and renamed by Graphcore Ltd.
 ---
-- name: Gather some information on user & project
+
+- name: Create or destroy appliance
   hosts: openstack
+  vars:
+    image_name: "{{ poplar_appliance_images | selectattr('name', 'equalto', operating_system) | map(attribute='image_name') | first }}"
+    image_tag: "{{ poplar_appliance_images | selectattr('name', 'equalto', operating_system) | map(attribute='image_tag') | first }}"
+    execution_order:
+      - "{{ (terraform_state == 'present' or terraform_state == 'absent') | ternary('init_infra','') }}"
+      - "{{ (terraform_state == 'present' or terraform_state == 'absent') | ternary('cluster_infra','') }}"
   tasks:
-    - name: Log appliance name
-      ansible.builtin.debug:
-        msg: "Building appliance {{cluster_name}}"
-
-    - name: Get openstack user name
-      ansible.builtin.shell:
-        cmd: openstack user show "$(openstack token issue -f value -c user_id)" -f value -c name
-      register: openstack_cli_user
-
-    - name: Set user name
-      ansible.builtin.set_fact:
-        appliance_user: "{{ openstack_cli_user.stdout | default( 'ipuuser') }}"
-
-    - name: Get user's openstack project ID
-      ansible.builtin.shell:
-        cmd: openstack token issue -f value -c project_id
-      register: openstack_cli_proj
-
-    - name: Set user project ID fact
-      ansible.builtin.set_fact:
-        appliance_project: "{{ openstack_cli_proj.stdout | default( 'ipuops') }}"
-
-    - name: Get tenancy name
-      ansible.builtin.shell:
-        cmd: openstack project show "$(openstack token issue -f value -c project_id)" -f value -c name
-      register: openstack_cli_tenancy_name
-
-    - name: Set user tenancy name fact
-      ansible.builtin.set_fact:
-        appliance_tenancy: "{{ openstack_cli_tenancy_name.stdout | default( 'ipuops') }}"
-
-    - name: Get the name of the cloud from the tags on our tenancy
-      ansible.builtin.shell:
-        cmd: openstack project show {{ appliance_tenancy }} -f json -c tags
-      register: openstack_cloud_name
-
-    - name: Extract cloud name
-      ansible.builtin.set_fact:
-        gc_cloud: "{{ openstack_cloud_name.stdout | from_json | json_query('tags[0]') | replace('-','_') }}"
-
-    - name: Define the terraform state
-      ansible.builtin.set_fact:
-        terraform_state: "{{ cluster_state | default('present') }}"
-
-    - name: Include the vars we need
-      ansible.builtin.include_vars:
-        file: "{{ item }}"
-      loop:
-        - "{{playbook_dir}}/group_vars/{{gc_cloud}}.yaml"
-
-- name: Build the appliance
-  hosts: openstack
-  tasks:
-    - name: Build the appliance when terraform_state is present
-      block:
-          # This creation can fail because:
-          # 1. There aren't enough free IPUMs
-          # 2. The allocation already exists
-
-        - name: Copy clouds.yaml file
-          ansible.builtin.copy:
-            decrypt: yes
-            src: "{{playbook_dir}}/files/clouds-{{gc_cloud}}.yaml"
-            dest: "/etc/openstack/clouds.yaml"
-            mode: 0666
-
-        - name: Shuffle IPUMs
-          ansible.builtin.include_role:
-            name: poplar_infra
-            tasks_from: truffleshuffle.yml
-
-
-        - name: Remove clouds.yaml file so next task runs as the Azimuth user
-          ansible.builtin.file:
-            state: absent
-            path: "/etc/openstack/clouds.yaml"
-
-        - name: Create the Poplar VM
-          ansible.builtin.include_role:
-            name: cluster_infra
-          vars:
-            image_name: "{{ poplar_appliance_images | selectattr('name', 'equalto', operating_system) | map(attribute='image_name') | first }}"
-            image_tag: "{{ poplar_appliance_images | selectattr('name', 'equalto', operating_system) | map(attribute='image_tag') | first }}"
-      when: terraform_state == "present"
-
-- name: Destroy the appliance
-  hosts: openstack
-#  vars:
-#    allocation_name: "{{ allocation_name }}"
-#    appliance_user: "{{ appliance_user }}"
-#    appliance_project: "{{ appliance_project }}"
-#    appliance_tenancy: "{{ appliance_tenancy }}"
-#    terraform_state: "{{ terraform_state }}"
-  tasks:
-    - name: Destroy the appliance
-      block:
-        - name: Test if appliance VM exists
-          ansible.builtin.shell:
-            cmd: openstack server list --name {{cluster_name}}
-          register: vm_query
-
-        - name: Remove the Poplar VM, if it exists
-          ansible.builtin.include_role:
-            name: cluster_infra
-          vars:
-            image_name: "{{ poplar_appliance_images | selectattr('name', 'equalto', operating_system) | map(attribute='image_name') | first }}"
-            image_tag: "{{ poplar_appliance_images | selectattr('name', 'equalto', operating_system) | map(attribute='image_tag') | first }}"
-          when: '"{{cluster_name}}" in vm_query.stdout'
-
-      # End block
-      when: terraform_state == "absent"
+    - name: Include the roles needed
+      ansible.builtin.include_role:
+        name: "{{ item }}"
+      loop: "{{ execution_order | select | list }}"
 
 # Write the outputs as the final task
 - hosts: localhost
@@ -122,6 +22,6 @@
       vars:
         outputs:
           cluster_access_ip: "{{ hostvars[groups['openstack'][0]].cluster_access_ip }}"
-          cluster_user: "{{ hostvars[groups['openstack'][0]].cluster_user }}"
+          cluster_user: "{{ hostvars[groups['openstack'][0]].appliance_user }}"
           cluster_flavour_name: "{{ hostvars[groups['openstack'][0]].cluster_flavour_name }}"
           cluster_operating_system: "{{ hostvars[groups['openstack'][0]].operating_system }}"

@@ -51,27 +51,6 @@
     - terraform_state == "present"
     - cluster_upgrade_system_packages is not defined or not cluster_upgrade_system_packages
 
-# SYSOP-1087 - make deletion more robust
-- block:
-    - name: Get previous Terraform state
-      stackhpc.terraform.terraform_output:
-        binary_path: "{{ terraform_binary_path }}"
-        project_path: "{{ terraform_project_path }}"
-        backend_config: "{{ terraform_backend_config }}"
-      register: cluster_infra_terraform_output
-
-    - name: Extract user rnic network ID from state
-      set_fact:
-        user_rnic_net_id: "{{ cluster_infra_terraform_output.outputs.user_rnic_net_id.value }}"
-      when: '"user_rnic_net_id" in cluster_infra_terraform_output.outputs'
-
-    - name: Extract user rnic subnet ID from state
-      set_fact:
-        user_rnic_subnet_id: "{{ cluster_infra_terraform_output.outputs.user_rnic_subnet_id.value }}"
-      when: '"user_rnic_subnet_id" in cluster_infra_terraform_output.outputs'
-  when:
-    - terraform_state == "absent"
-
 - name: Template Terraform files into project directory
   template:
     src: "{{ item }}.j2"
@@ -81,16 +60,11 @@
     - providers.tf
     - resources.tf
 
-- name: Get resources.tf for debug
-  ansible.builtin.slurp:
-    src: "{{ terraform_project_path }}/resources.tf"
-  register: slurpfile
-  tags: [ debug, never ]
-
-- name: Debug resources.tf file
-  ansible.builtin.debug:
-    msg: "{{ slurpfile['content'] | b64decode }}"
-  tags: [ debug, never ]
+- name: Test if appliance VM exists
+  ansible.builtin.shell:
+    cmd: openstack server list --name {{cluster_name}}
+  register: vm_query
+  when: terraform_state == 'absent'
 
 - name: Provision infrastructure
   community.general.terraform:
@@ -101,6 +75,7 @@
     force_init: yes
     init_reconfigure: yes
   register: terraform_provision
+  when: (terraform_state == 'present') or (terraform_state == 'absent' and "cluster_name in vm_query.stdout")
 
 - name: Populate facts from Terraform outputs
   set_fact:
@@ -109,7 +84,3 @@
     cluster_flavour_name: "{{ terraform_provision.outputs.cluster_flavour_name.value }}"
   when:
     - terraform_state == "present"
-
-#- name: Provision infrastructure a la sample appliance
-#  include_role:
-#    name: stackhpc.terraform.infra
