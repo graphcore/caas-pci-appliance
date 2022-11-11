@@ -15,18 +15,6 @@
     - cluster_floating_ip is defined
     - cluster_floating_ip
 
-- name: List /usr/local/bin
-  ansible.builtin.command:
-    cmd: ls -l /usr/local/bin
-  register: list_out
-- name: Debug terraform
-  ansible.builtin.debug:
-    msg: "{{ list_out }}"
-
-#- name: Install Terraform binary
-#  include_role:
-#    name: stackhpc.terraform.install
-
 - name: Make Terraform project directory
   file:
     path: "{{ terraform_project_path }}"
