@@ -53,11 +53,7 @@ usage_template: |-
   The following environment variables have been set in the appliance:
 
   ```
-  GC_ALLOCATION_NAME={{cluster.outputs.allocation_name}}
-  GC_ALLOCATION_SIZE={{cluster.outputs.allocation_size}}
   GC_PUBLIC_IP={{cluster.outputs.cluster_access_ip | default("[cluster ip]") }}
-  IPUOF_VIPU_API_PARTITION_ID={{cluster.outputs.ipuof_vipu_api_partition_id}}
-  IPUOF_VIPU_API_HOST={{cluster.outputs.ipuof_vipu_api_host}}
   ```
 
   A data volume is mounted at `/data`, and content stored there will persist for the lifetime
