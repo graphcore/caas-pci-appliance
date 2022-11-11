@@ -15,9 +15,9 @@
     - cluster_floating_ip is defined
     - cluster_floating_ip
 
-- name: Install Terraform binary
-  include_role:
-    name: stackhpc.terraform.install
+#- name: Install Terraform binary
+#  include_role:
+#    name: stackhpc.terraform.install
 
 - name: Make Terraform project directory
   file:

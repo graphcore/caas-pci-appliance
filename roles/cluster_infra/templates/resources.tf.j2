@@ -57,11 +57,11 @@ resource "openstack_blockstorage_volume_v3" "data_volume" {
 # This block brings up a common access network interface
 #
 data "openstack_networking_network_v2" "extnet" {
-  tags = [ "ext", "azimuth-node-common-ext" ]
+  tags = [ "ctrl", "azimuth-vpod-common-ctrl" ]
 }
 
 data "openstack_networking_subnet_v2" "extsub" {
-  tags = [ "ext", "azimuth-node-common-ext" ]
+  tags = [ "ctrl", "azimuth-vpod-common-ctrl" ]
 }
 
 resource "openstack_networking_port_v2" "ext" {
