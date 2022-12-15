@@ -1,0 +1,58 @@
+# Here we RBAC the various networks
+- name: Copy clouds.yaml file
+  ansible.builtin.copy:
+    decrypt: yes
+    src: "{{playbook_dir}}/files/clouds-{{gc_cloud}}.yaml"
+    dest: "/etc/openstack/clouds.yaml"
+    mode: 0666
+
+- name: Get ID of common_ctrl network
+  openstack.cloud.networks_info:
+    cloud: openstack
+    name: azimuth-vpod-common-ctrl
+  register: ctrl_result
+  environment:
+    OS_CLIENT_CONFIG_FILE: "/etc/openstack/clouds.yaml"
+
+- name: Debug ctrl_network result
+  ansible.builtin.debug:
+    msg: "Ctrl network output {{ ctrl_result }}"
+# Ensure azimuth-vpod-common-ctrl RBAC policy exists
+
+- name: Create a new network RBAC policy
+  openstack.cloud.neutron_rbac_policy:
+    object_id: "{{ ctrl_result.openstack_networks[0].id}}"
+    object_type: "network"
+    target_project_id: "{{appliance_project}}"
+    project_id: "{{ctrl_result.openstack_networks[0].project_id}}"
+    cloud: openstack
+    action: "access_as_shared"
+    state: present
+  environment:
+    OS_CLIENT_CONFIG_FILE: "/etc/openstack/clouds.yaml"
+
+- name: Get ID of common_storage network
+  openstack.cloud.networks_info:
+    cloud: openstack
+    name: azimuth-vpod-common-storage
+  register: storage_result
+  environment:
+    OS_CLIENT_CONFIG_FILE: "/etc/openstack/clouds.yaml"
+
+# Ensure azimuth-vpod-common-storage RBAC policy exists
+- name: Create a new network RBAC policy
+  openstack.cloud.neutron_rbac_policy:
+    object_id: "{{ storage_result.openstack_networks[0].id}}"
+    object_type: "network"
+    target_project_id: "{{appliance_project}}"
+    project_id: "{{storage_result.openstack_networks[0].project_id}}"
+    cloud: openstack
+    action: "access_as_shared"
+    state: present
+  environment:
+    OS_CLIENT_CONFIG_FILE: "/etc/openstack/clouds.yaml"
+
+- name: Remove clouds.yaml file so next task runs as the Azimuth user
+  ansible.builtin.file:
+    state: absent
+    path: "/etc/openstack/clouds.yaml"
