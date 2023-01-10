@@ -28,6 +28,10 @@ cluster_ssh_user: ipuuser
 # These are the images that will be available for user selection
 # TODO: What images do we want to base the compute appliances on?
 poplar_appliance_images:
+  - name: "Ubuntu 22.04"
+    friendly: "Jammy"
+    image_name: "ubuntu22.04-azimuth-poplar"
+    image_tag: "gc_tag_latest"
   - name: "Ubuntu 20.04"
     friendly: "Focal"
     image_name: "ubuntu20.04-azimuth-poplar"
