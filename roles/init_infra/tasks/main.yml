@@ -52,6 +52,7 @@
 - name: Try accessing AWX
   ansible.builtin.uri:
     url: "http://172.19.18.67:8052"
+    return_content: true
   register: uri_out
 
 - ansible.builtin.debug:
