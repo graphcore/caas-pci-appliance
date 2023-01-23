@@ -45,7 +45,7 @@
   awx.awx.export:
     inventory: "jameso@graphcore.ai-app-cred-test"
     controller_host: "http://127.0.0.1:8052"
-    controller_oathtoken: "{{ controller_oathtoken }}"
+    controller_oathtoken: "{{ controller_oauthtoken }}"
     controller_username: "{{ controller_username }}"
     validate_certs: no
 
