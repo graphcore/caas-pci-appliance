@@ -6,32 +6,34 @@
   ansible.builtin.debug:
     msg: "{{(terraform_state == 'present') | ternary ('Building','Destroying')}} {{cluster_type}} {{cluster_name}} of flavour {{cluster_flavor}} & ID {{cluster_id}}"
 
-- name: Get openstack user name
-  ansible.builtin.shell:
-    cmd: openstack user show "$(openstack token issue -f value -c user_id)" -f value -c name
-  register: openstack_cli_user
+# - name: Get openstack user name
+#   ansible.builtin.shell:
+#     cmd: openstack user show "$(openstack token issue -f value -c user_id)" -f value -c name
+#   register: openstack_cli_user
 
 - name: Set user name
   ansible.builtin.set_fact:
-    appliance_user: "{{ (openstack_cli_user.stdout | split('@') | first) if '@' in openstack_cli_user.stdout else openstack_cli_user.stdout }}"
+    appliance_user: "jameso@graphcore.ai"
+    #appliance_user: "{{ (openstack_cli_user.stdout | split('@') | first) if '@' in openstack_cli_user.stdout else openstack_cli_user.stdout }}"
 
-- name: Get user's openstack project ID
-  ansible.builtin.shell:
-    cmd: openstack token issue -f value -c project_id
-  register: openstack_cli_proj
+# - name: Get user's openstack project ID
+#   ansible.builtin.shell:
+#     cmd: openstack token issue -f value -c project_id
+#   register: openstack_cli_proj
 
 - name: Set user project ID fact
   ansible.builtin.set_fact:
-    appliance_project: "{{ openstack_cli_proj.stdout | default( 'ipuops') }}"
+    #appliance_project: "{{ openstack_cli_proj.stdout | default( 'ipuops') }}"
+    appliance_project: "4f19cf5df697497e9222505361cf75b8"
 
-- name: Get tenancy name
-  ansible.builtin.shell:
-    cmd: openstack project show "$(openstack token issue -f value -c project_id)" -f value -c name
-  register: openstack_cli_tenancy_name
+# - name: Get tenancy name
+#   ansible.builtin.shell:
+#     cmd: openstack project show "$(openstack token issue -f value -c project_id)" -f value -c name
+#   register: openstack_cli_tenancy_name
 
-- name: Set user tenancy name fact
-  ansible.builtin.set_fact:
-    appliance_tenancy: "{{ openstack_cli_tenancy_name.stdout | default( 'ipuops') }}"
+# - name: Set user tenancy name fact
+#   ansible.builtin.set_fact:
+#     appliance_tenancy: "{{ openstack_cli_tenancy_name.stdout | default( 'ipuops') }}"
 
 - name: Include the vars we need
   ansible.builtin.include_vars:
