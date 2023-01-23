@@ -33,10 +33,10 @@
   ansible.builtin.set_fact:
     appliance_tenancy: "{{ openstack_cli_tenancy_name.stdout | default( 'ipuops') }}"
 
-- name: Test getting user AppCred
-  ansible.builtin.shell:
-    cmd: openstack application credential create -f yaml test-cred
-  register: user_appcred
+# - name: Test getting user AppCred
+#   ansible.builtin.shell:
+#     cmd: openstack application credential create -f yaml test-cred
+#   register: user_appcred
 
 - ansible.builtin.debug:
     msg: "{{ user_appcred }}"
@@ -48,12 +48,15 @@
     - "{{playbook_dir}}/group_vars/{{gc_cloud}}.yaml"
   loop_control:
     loop_var: var_inc_var
+- name: Try accessing AWX
+  ansible.builtin.uri:
+    url: "http://172.19.18.67:8052"
 
-- name: try to access AWX
-  local_action:
-    module: awx.awx.export
-    inventory: "jameso@graphcore.ai-app-cred-test"
-    controller_host: "http://172.19.18.67:8052"
-    controller_oauthtoken: "{{ controller_oauthtoken }}"
-    controller_username: "{{ controller_username }}"
-    validate_certs: no
+# - name: try to access AWX
+#   local_action:
+#     module: awx.awx.export
+#     inventory: "jameso@graphcore.ai-app-cred-test"
+#     controller_host: "http://172.19.18.67:8052"
+#     controller_oauthtoken: "{{ controller_oauthtoken }}"
+#     controller_username: "{{ controller_username }}"
+#     validate_certs: no
