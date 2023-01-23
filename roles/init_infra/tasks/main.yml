@@ -58,11 +58,11 @@
 - ansible.builtin.debug:
     msg: "{{ uri_out }}"
 
-# - name: try to access AWX
-#   local_action:
-#     module: awx.awx.export
-#     inventory: "jameso@graphcore.ai-app-cred-test"
-#     controller_host: "http://172.19.18.67:8052"
-#     controller_oauthtoken: "{{ controller_oauthtoken }}"
-#     controller_username: "{{ controller_username }}"
-#     validate_certs: no
+- name: try to access AWX
+  local_action:
+    module: awx.awx.export
+    inventory: "jameso@graphcore.ai-app-cred-test"
+    controller_host: "http://172.19.18.67:8052"
+    controller_oauthtoken: "{{ controller_oauthtoken }}"
+    controller_username: "{{ controller_username }}"
+    validate_certs: no
