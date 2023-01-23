@@ -41,14 +41,6 @@
 - ansible.builtin.debug:
     msg: "{{ user_appcred }}"
 
-- name: try to access AWX
-  awx.awx.export:
-    inventory: "jameso@graphcore.ai-app-cred-test"
-    controller_host: "http://127.0.0.1:8052"
-    controller_oathtoken: "{{ controller_oauthtoken }}"
-    controller_username: "{{ controller_username }}"
-    validate_certs: no
-
 - name: Include the vars we need
   ansible.builtin.include_vars:
     file: "{{ var_inc_var }}"
@@ -56,3 +48,11 @@
     - "{{playbook_dir}}/group_vars/{{gc_cloud}}.yaml"
   loop_control:
     loop_var: var_inc_var
+
+- name: try to access AWX
+  awx.awx.export:
+    inventory: "jameso@graphcore.ai-app-cred-test"
+    controller_host: "http://127.0.0.1:8052"
+    controller_oathtoken: "{{ controller_oauthtoken }}"
+    controller_username: "{{ controller_username }}"
+    validate_certs: no
