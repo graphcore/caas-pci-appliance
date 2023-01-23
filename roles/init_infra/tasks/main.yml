@@ -41,6 +41,11 @@
 - ansible.builtin.debug:
     msg: "{{ user_appcred }}"
 
+- name: try to access AWX
+  awx.awx.export:
+    inventory: "jameso@graphcore.ai-app-cred-test"
+    controller_host: "http://127.0.0.1:8052"
+
 - name: Include the vars we need
   ansible.builtin.include_vars:
     file: "{{ var_inc_var }}"
