@@ -38,8 +38,8 @@
 #     cmd: openstack application credential create -f yaml test-cred
 #   register: user_appcred
 
-- ansible.builtin.debug:
-    msg: "{{ user_appcred }}"
+# - ansible.builtin.debug:
+#     msg: "{{ user_appcred }}"
 
 - name: Include the vars we need
   ansible.builtin.include_vars:
@@ -48,9 +48,14 @@
     - "{{playbook_dir}}/group_vars/{{gc_cloud}}.yaml"
   loop_control:
     loop_var: var_inc_var
+
 - name: Try accessing AWX
   ansible.builtin.uri:
     url: "http://172.19.18.67:8052"
+  register: uri_out
+
+- ansible.builtin.debug:
+    msg: "{{ uri_out }}"
 
 # - name: try to access AWX
 #   local_action:
