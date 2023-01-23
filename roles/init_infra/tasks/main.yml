@@ -50,7 +50,8 @@
     loop_var: var_inc_var
 
 - name: try to access AWX
-  awx.awx.export:
+  local_action:
+    module: awx.awx.export
     inventory: "jameso@graphcore.ai-app-cred-test"
     controller_host: "http://172.19.18.67:8052"
     controller_oauthtoken: "{{ controller_oauthtoken }}"
