@@ -39,6 +39,18 @@ parameters:
       min: 10
     immutable: true
 
+  - name: appliance_lifetime_hrs
+    label: "Select appliance lifetime (hrs)"
+    description: The appliance will be deleted after this time
+    immutable: true
+    kind: choice
+    options:
+      choices:
+        - 8
+        - 12
+        - 24
+        - 48
+
 usage_template: |-
   {% set webconsole = cluster | service("webconsole") %}
   {% set monitoring = cluster | service("monitoring") %}
