@@ -76,7 +76,7 @@
 
     - name: Convert AppCred to YAML
       ansible.builtin.set_fact:
-        user_appcred: user_appcred_req | from_yaml
+        user_appcred: "{{ user_appcred_req | from_yaml }}"
 
     - name: Debug yaml
       ansible.builtin.debug:
