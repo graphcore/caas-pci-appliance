@@ -127,6 +127,8 @@
         unified_job_template: compute-appliance
         credentials:
           - "{{ cluster_name }}_{{ cluster_id }}"
+        extra_data:
+          cluster_state: absent
         rrule: "{{ schedule_rrule }}"
         enabled: true
         controller_host: "http://172.19.18.67:8052"
