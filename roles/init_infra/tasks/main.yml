@@ -61,7 +61,7 @@
 #     validate_certs: no
 
 - name: Application credential
-  when: not cluster_state is search("absent")
+  when: not terraform_state is search("absent")
   block:
     #TODO: add expiry time
     #TODO: consider making AppCred name more unique (OpenStack complains)
