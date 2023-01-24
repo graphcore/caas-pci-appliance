@@ -78,6 +78,11 @@
       ansible.builtin.set_fact:
         user_appcred: user_appcred_req | from_yaml
 
+    - name: Debug yaml
+      ansible.builtin.debug:
+        msg: "{{ user_appcred }}"
+
+
     #TODO: Add auth_url to parameters
     - name: Create AWX credential
       local_action:
