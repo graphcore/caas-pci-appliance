@@ -33,14 +33,6 @@
   ansible.builtin.set_fact:
     appliance_tenancy: "{{ openstack_cli_tenancy_name.stdout | default( 'ipuops') }}"
 
-- name: Test getting user AppCred
-  ansible.builtin.shell:
-    cmd: openstack application credential create -f yaml {{ cluster_name }}_{{ cluster_id }}
-  register: user_appcred
-  when: not cluster_state is search("absent")
-
-- ansible.builtin.debug:
-    msg: "{{ user_appcred }}"
 
 - name: Include the vars we need
   ansible.builtin.include_vars:
@@ -50,20 +42,52 @@
   loop_control:
     loop_var: var_inc_var
 
-- name: Try accessing AWX
-  ansible.builtin.uri:
-    url: "http://172.19.18.67:8052"
-    return_content: true
-  register: uri_out
+# - name: Try accessing AWX
+#   ansible.builtin.uri:
+#     url: "http://172.19.18.67:8052"
+#     return_content: true
+#   register: uri_out
 
-- ansible.builtin.debug:
-    msg: "{{ uri_out }}"
+# - ansible.builtin.debug:
+#     msg: "{{ uri_out }}"
 
-- name: try to access AWX
-  local_action:
-    module: awx.awx.export
-    inventory: "{{appliance_tenancy}}-{{cluster_name}}"
-    controller_host: "http://172.19.18.67:8052"
-    controller_oauthtoken: "{{ controller_oauthtoken }}"
-    controller_username: "{{ controller_username }}"
-    validate_certs: no
+# - name: try to access AWX
+#   local_action:
+#     module: awx.awx.export
+#     inventory: "{{appliance_tenancy}}-{{cluster_name}}"
+#     controller_host: "http://172.19.18.67:8052"
+#     controller_oauthtoken: "{{ controller_oauthtoken }}"
+#     controller_username: "{{ controller_username }}"
+#     validate_certs: no
+
+- name: Application credential
+  when: not cluster_state is search("absent")
+  block:
+    #TODO: add expiry time
+    #TODO: consider making AppCred name more unique (OpenStack complains)
+    - name: Test getting user AppCred
+      ansible.builtin.shell:
+        cmd: openstack application credential create -f yaml {{ cluster_name }}_{{ cluster_id }}
+      register: user_appcred_req
+
+    - name: Debug stdout
+      ansible.builtin.debug:
+        msg: "{{ user_appcred_req.stdout }}"
+
+    - name: Convert AppCred to YAML
+      ansible.builtin.set_fact:
+        user_appcred: user_appcred_req | from_yaml
+
+    #TODO: Add auth_url to parameters
+    - name: Create AWX credential
+      local_action:
+        module: awx.awx.credential
+        name: "{{ cluster_name }}_{{ cluster_id }}"
+        description: AppCred for {{ appliance_user }}
+        state: present
+        user: admin
+        credential_type: OpenStack AppCred
+        inputs:
+          auth_url: "https://gbnwp-cl1.ipu.graphcore.ai:5000"
+          application_credential_id: "{{ user_appcred.id }}"
+          application_credential_secret: "{{ user_appcred.secret }}"
