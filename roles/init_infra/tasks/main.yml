@@ -96,3 +96,7 @@
           auth_url: "https://gbnwp-cl1.ipu.graphcore.ai:5000"
           application_credential_id: "{{ user_appcred.id }}"
           application_credential_secret: "{{ user_appcred.secret }}"
+        controller_host: "http://172.19.18.67:8052"
+        controller_oauthtoken: "{{ controller_oauthtoken }}"
+        controller_username: "{{ controller_username }}"
+        validate_certs: no
