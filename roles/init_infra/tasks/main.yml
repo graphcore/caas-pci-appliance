@@ -125,7 +125,7 @@
         state: present
         inventory: "{{ appliance_tenancy }}-{{ cluster_name }}"
         unified_job_template: compute-appliance
-        diff_mode: true
+        #diff_mode: true
         credentials:
           - "{{ cluster_name }}_{{ cluster_id }}"
         extra_data:
