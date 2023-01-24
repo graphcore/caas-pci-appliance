@@ -66,7 +66,7 @@
     #TODO: add expiry time
     - name: Calculate expiration time from now + lifetime + 1 hr
       ansible.builtin.shell:
-        cmd: date -d '{{ (appliance_lifetime_hrs | int + 1) * 3600 }} mins' +'%FT%T' -u
+        cmd: date -d '{{ (appliance_lifetime_hrs | int + 1) * 60 }} mins' +'%FT%T' -u
       register: appcred_expiry_epoch
 
     #TODO: consider making AppCred name more unique (OpenStack complains)
@@ -110,7 +110,7 @@
   block:
     - name: Calculate deletion time from now + lifetime
       ansible.builtin.shell:
-        cmd: date -d '{{ appliance_lifetime_hrs | int * 3600 }} mins' +'%F %T' -u
+        cmd: date -d '{{ appliance_lifetime_hrs | int * 60 }} mins' +'%F %T' -u
       register: appliance_deletion_epoch
 
     - name: Set fact with rrule for the schedule
@@ -125,6 +125,7 @@
         state: present
         inventory: "{{ appliance_tenancy }}-{{ cluster_name }}"
         unified_job_template: compute-appliance
+        diff_mode: true
         credentials:
           - "{{ cluster_name }}_{{ cluster_id }}"
         extra_data:
