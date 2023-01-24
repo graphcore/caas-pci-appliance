@@ -37,6 +37,7 @@
   ansible.builtin.shell:
     cmd: openstack application credential create -f yaml {{ cluster_name }}_{{ cluster_id }}
   register: user_appcred
+  when: not cluster_state is search("absent")
 
 - ansible.builtin.debug:
     msg: "{{ user_appcred }}"
