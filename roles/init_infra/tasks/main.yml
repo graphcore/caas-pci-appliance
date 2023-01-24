@@ -64,10 +64,15 @@
   when: not terraform_state is search("absent")
   block:
     #TODO: add expiry time
+    - name: Calculate expiration time from now + lifetime + 1 hr
+      ansible.builtin.shell:
+        cmd: date -d '{{ (appliance_lifetime | int + 1) * 3600 }} mins' +'%FT%T' -u
+      register: appcred_expiry_epoch
+
     #TODO: consider making AppCred name more unique (OpenStack complains)
     - name: Test getting user AppCred
       ansible.builtin.shell:
-        cmd: openstack application credential create -f yaml {{ cluster_name }}_{{ cluster_id }}
+        cmd: openstack application credential create -f yaml --expiration {{appcred_expiry_epoch.stdout}} {{ cluster_name }}_{{ cluster_id }}
       register: user_appcred_req
 
     - name: Debug stdout
@@ -82,7 +87,6 @@
       ansible.builtin.debug:
         msg: "{{ user_appcred }}"
 
-
     #TODO: Add auth_url to parameters
     - name: Create AWX credential
       local_action:
@@ -96,6 +100,35 @@
           auth_url: "https://gbnwp-cl1.ipu.graphcore.ai:5000"
           application_credential_id: "{{ user_appcred.id }}"
           application_credential_secret: "{{ user_appcred.secret }}"
+        controller_host: "http://172.19.18.67:8052"
+        controller_oauthtoken: "{{ controller_oauthtoken }}"
+        controller_username: "{{ controller_username }}"
+        validate_certs: no
+
+- name: Schedule appliance deletion
+  when: not terraform_state is search("absent")
+  block:
+    - name: Calculate deletion time from now + lifetime
+      ansible.builtin.shell:
+        cmd: date -d '{{ appliance_lifetime | int * 3600 }} mins' +'%F %T' -u
+      register: appliance_deletion_epoch
+
+    - name: Set fact with rrule for the schedule
+      ansible.builtin.set_fact:
+        schedule_rrule: "{{ query('awx.awx.schedule_rrule', 'none', start_date='' + appliance_deletion_epoch.stdout + '', timezone='UTC') }}"
+
+    - name: Schedule appliance deletion
+      local_action:
+        module: awx.awx.schedule
+        name: "Deletion task for {{ cluster_name }}"
+        description: "Schedule created by Ansible"
+        state: present
+        inventory: "{{ appliance_tenancy }}-{{ cluster_name }}"
+        unified_job_template: compute-appliance
+        credentials:
+          - "{{ cluster_name }}_{{ cluster_id }}"
+        rrule: "{{ schedule_rrule }}"
+        enabled: true
         controller_host: "http://172.19.18.67:8052"
         controller_oauthtoken: "{{ controller_oauthtoken }}"
         controller_username: "{{ controller_username }}"
