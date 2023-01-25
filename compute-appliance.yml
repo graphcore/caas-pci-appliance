@@ -25,3 +25,5 @@
           cluster_user: "{{ hostvars[groups['openstack'][0]].appliance_user }}"
           cluster_flavour_name: "{{ hostvars[groups['openstack'][0]].cluster_flavour_name }}"
           cluster_operating_system: "{{ hostvars[groups['openstack'][0]].operating_system }}"
+          cluster_lifetime: "{{ hostvars[groups['openstack'][0]].appliance_lifetime_hrs }}"
+          cluster_termination_epoch: "{{ hostvars[groups['openstack'][0]].appliance_deletion_epoch.stdout }}"

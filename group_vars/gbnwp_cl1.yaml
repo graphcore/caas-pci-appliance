@@ -1,5 +1,5 @@
 # This file contains parameters common to all gbnwp-cl1:
-
+auth_url: "https://gbnwp-cl1.ipu.graphcore.ai:5000"
 dns_base: "openstack.graphcore.ai."
 
 ##

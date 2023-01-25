@@ -33,7 +33,6 @@
   ansible.builtin.set_fact:
     appliance_tenancy: "{{ openstack_cli_tenancy_name.stdout | default( 'ipuops') }}"
 
-
 - name: Include the vars we need
   ansible.builtin.include_vars:
     file: "{{ var_inc_var }}"
@@ -42,28 +41,9 @@
   loop_control:
     loop_var: var_inc_var
 
-# - name: Try accessing AWX
-#   ansible.builtin.uri:
-#     url: "http://172.19.18.67:8052"
-#     return_content: true
-#   register: uri_out
-
-# - ansible.builtin.debug:
-#     msg: "{{ uri_out }}"
-
-# - name: try to access AWX
-#   local_action:
-#     module: awx.awx.export
-#     inventory: "{{appliance_tenancy}}-{{cluster_name}}"
-#     controller_host: "http://172.19.18.67:8052"
-#     controller_oauthtoken: "{{ controller_oauthtoken }}"
-#     controller_username: "{{ controller_username }}"
-#     validate_certs: no
-
 - name: Application credential
   when: not terraform_state is search("absent")
   block:
-    #TODO: add expiry time
     - name: Calculate expiration time from now + lifetime + 1 hr
       ansible.builtin.shell:
         cmd: date -d '{{ (appliance_lifetime_hrs | int + 1) * 60 }} mins' +'%FT%T' -u
@@ -87,7 +67,6 @@
       ansible.builtin.debug:
         msg: "{{ user_appcred }}"
 
-    #TODO: Add auth_url to parameters
     - name: Create AWX credential
       local_action:
         module: awx.awx.credential
@@ -97,7 +76,7 @@
         user: admin
         credential_type: OpenStack AppCred
         inputs:
-          auth_url: "https://gbnwp-cl1.ipu.graphcore.ai:5000"
+          auth_url: "{{ auth_url }}"
           application_credential_id: "{{ user_appcred.id }}"
           application_credential_secret: "{{ user_appcred.secret }}"
         controller_host: "http://172.19.18.67:8052"
@@ -125,7 +104,6 @@
         state: present
         inventory: "{{ appliance_tenancy }}-{{ cluster_name }}"
         unified_job_template: compute-appliance
-        #diff_mode: true
         credentials:
           - "{{ cluster_name }}_{{ cluster_id }}"
         extra_data:
