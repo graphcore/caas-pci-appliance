@@ -158,7 +158,7 @@ resource "openstack_compute_instance_v2" "cluster_server" {
            #    Email: cloud-development@graphcore.ai                                   #
            #                                                                            #
            #  Appliance lifetime: {{ '%02d'|format(appliance_lifetime_hrs|int) }} hr                                                 #
-           #  Deletion scheduled on: {{ appliance_deletion_epoch.stdout }}                                #
+           #  Deletion scheduled on: {{ appliance_deletion_epoch }}                                #
            #                                                                            #
            ##############################################################################
 
