@@ -64,6 +64,10 @@
     - name: Get the appliance deletion epoch from the AppCred
       ansible.builtin.set_fact:
         appliance_deletion_epoch: "{{ existing_credential.assets.credentials[0].inputs.application_credential_expiry}}"
+
+    - name: Appliance already exists
+      ansible.builtin.set_fact:
+        appliance_state: update
   rescue:
     - name: Appliance is being created for first time
       ansible.builtin.set_fact:
