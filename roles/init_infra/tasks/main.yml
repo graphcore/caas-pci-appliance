@@ -59,11 +59,11 @@
         controller_username: "{{ controller_username }}"
         validate_certs: no
       register: existing_credential
-      failed_when: "existing_credential.inventory_out.assets.credentials | length != 1"
+      failed_when: "existing_credential.assets.credentials | length != 1"
 
     - name: Get the appliance deletion epoch from the AppCred
       ansible.builtin.set_fact:
-        appliance_deletion_epoch: "{{ existing_credential.inventory_out.assets.credentials[0].inputs.application_credential_expiry}}"
+        appliance_deletion_epoch: "{{ existing_credential.assets.credentials[0].inputs.application_credential_expiry}}"
   rescue:
     - name: Appliance is being created for first time
       ansible.builtin.set_fact:
