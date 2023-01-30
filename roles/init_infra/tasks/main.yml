@@ -42,7 +42,7 @@
       local_action:
         module: awx.awx.export
         credentials: "{{ appcred_name }}"
-        controller_host: "http://awx-service"
+        controller_host: "{{ controller_host }}"
         controller_oauthtoken: "{{ controller_oauthtoken }}"
         controller_username: "{{ controller_username }}"
         validate_certs: no
@@ -111,7 +111,7 @@
           application_credential_id: "{{ user_appcred.id if user_appcred is defined else 'dummy' }}"
           application_credential_secret: "{{ user_appcred.secret if user_appcred is defined else 'dummy' }}"
           application_credential_expiry: "{{ appliance_deletion_epoch }}"
-        controller_host: "http://172.19.18.67:8052"
+        controller_host: "{{ controller_host }}"
         controller_oauthtoken: "{{ controller_oauthtoken }}"
         controller_username: "{{ controller_username }}"
         validate_certs: no
@@ -136,7 +136,7 @@
           cluster_state: absent
         rrule: "{{ schedule_rrule }}"
         enabled: true
-        controller_host: "http://172.19.18.67:8052"
+        controller_host: "{{ controller_host }}"
         controller_oauthtoken: "{{ controller_oauthtoken }}"
         controller_username: "{{ controller_username }}"
         validate_certs: no
