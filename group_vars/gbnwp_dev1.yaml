@@ -1,4 +1,47 @@
-# This file contains parameters common to all gbnwp-cl1:
+# This file contains parameters common to all gbnwp-cl1 dev1:
+#   - projects/tenancies
+#   - vpods
+#
+# For deployments that occupy part of a cloud we use the tenancy name to define
+# the properties. Apart from the IPUM list, which is de facto part of the
+# containing cloud. In the case of dev1 the containing cloud is cl1
+# Thus, we specify two parameters, which are set in the AWX template:
+#
+# {
+#   "gc_cloud": "gbnwp_cl1",
+#   "gc_tenancy": "gbnwp_dev1"
+# }
+
+control_network_name: "azimuth-dev1-vpod-common-ctrl"
+storage_network_name: "azimuth-dev1-vpod-common-storage"
+
+##
+# Use the following VIPU servers
+vipu_ver: "1.18.0"
+azimuth_vipu_base_port: 11729
+azimuth_ext_ip_prefix: "10.129.110.111"
+vipu_servers:
+  default:
+    name: "azimuth-dev1-vpod-common-ctrl.gbnwp-cl1.ipu.graphcore.ai"
+    floating_ip: "10.129.110.238"
+    ctrl_net_ip: "10.3.48.102"
+    vipu_port: "8090"
+  sysopssandpit:
+    name: "azimuth-dev1-vpod-common-ctrl.gbnwp-cl1.ipu.graphcore.ai"
+    floating_ip: "10.129.110.238"
+    ctrl_net_ip: "10.3.48.102"
+    vipu_port: "8090"
+  wonderland:
+    name: "azimuth-dev1-vpod-common-ctrl.gbnwp-cl1.ipu.graphcore.ai"
+    floating_ip: "10.129.110.238"
+    ctrl_net_ip: "10.3.48.102"
+    vipu_port: "8090"
+  alderaan:
+    name: "azimuth-dev1-vpod-common-ctrl.gbnwp-cl1.ipu.graphcore.ai"
+    floating_ip: "10.129.110.238"
+    ctrl_net_ip: "10.3.48.102"
+    vipu_port: "8090"
+
 auth_url: "https://gbnwp-cl1.ipu.graphcore.ai:5000"
 dns_base: "openstack.graphcore.ai."
 
@@ -19,13 +62,6 @@ ldap_binddn: "uid=svcsysops-ldapbind,ou=People,dc=bris,dc=graphcore,dc=ai"
 ##
 # Additional mounts for Poplar VM
 additional_mounts:
-  # - name: ceph-nethome
-  #   fs_spec: "10.194.5.101:6789,10.194.5.104:6789,10.194.5.105:6789:/volumes/_nogroup/7d727547-75e3-424a-8974-ab2d33a7f817/d7541e4a-d6e6-46ab-a627-9f957f7dc78c"
-  #   fs_file: "/nethome"
-  #   fs_vfstype: "ceph"
-  #   fs_mntops: "name=globalnethome,secretfile=/etc/ceph/cephfsnethome.secret,_netdev"
-  #   fs_freq: "0"
-  #   fs_passno: "0"
   - name: ceph-public
     fs_spec: "10.194.5.101:6789,10.194.5.104:6789,10.194.5.105:6789:/volumes/_nogroup/120870d6-360f-4468-b457-e8b27e903f99/502e26fa-eae5-489e-b102-7f347215df74"
     fs_file: "/mnt/public"
@@ -60,11 +96,10 @@ cephfs_public_secret: !vault |
 
 controller_oauthtoken: !vault |
   $ANSIBLE_VAULT;1.1;AES256
-  63626439646131343762313131326564643739646434643233316462653331613266616533333162
-  6431656639666239616334626435613032323564343563300a663333386563633062656336353435
-  30613531613366656534353763626466323737366566653730626462386465653765356161343863
-  3161396239353866610a383763633331613638373138313332353562343162356665653735366535
-  35616563626338373739363165383039616363333339366562373530656138393731
+  39383261656137306366333433313335366334386130653531323434616166643833333962393236
+  6261343666643234346534383836356362323537303533610a313334633765323665643633663865
+  62386263653565663961663965666663313637356233326530383162613336636431653430636538
+  3637346464666130330a303434363566333139646432616335303737366537393536383962313539
+  35633261356563323737393562306464316237633632613631396537316234643462
 controller_username: admin
-controller_host: http://awx-service
 validate_certs: no
