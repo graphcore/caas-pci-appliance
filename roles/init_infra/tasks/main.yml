@@ -129,7 +129,7 @@
     - name: Schedule appliance deletion
       local_action:
         module: awx.awx.schedule
-        name: "Deletion task for {{ cluster_name }}"
+        name: "{{cluster_id}}-{{appliance_user}}-{{cluster_name}}"
         description: "Schedule created by Ansible"
         state: present
         inventory: "{{ appliance_tenancy }}-{{ cluster_name }}"
@@ -153,7 +153,7 @@
     - name: Schedule appliance deletion
       local_action:
         module: awx.awx.schedule
-        name: "Deletion task for {{ cluster_name }}"
+        name: "{{cluster_id}}-{{appliance_user}}-{{cluster_name}}"
         state: absent
         inventory: "{{ appliance_tenancy }}-{{ cluster_name }}"
         controller_host: "{{ controller_host }}"
