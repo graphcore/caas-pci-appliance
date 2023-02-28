@@ -100,10 +100,21 @@ resource "openstack_networking_port_v2" "stor" {
 ##
 # This block allocates a public floating IP to the appliance
 #
-resource "openstack_networking_floatingip_v2" "app-fip" {
-  pool = "external"
-  port_id = "${openstack_networking_port_v2.ext.id}"
+# resource "openstack_networking_floatingip_v2" "app-fip" {
+#   pool = "external"
+#   port_id = "${openstack_networking_port_v2.ext.id}"
+# }
+{% if cluster_floating_ip_address is defined and cluster_floating_ip_address %}
+#####
+##### Floating IP association
+#####
+
+resource "openstack_compute_floatingip_associate_v2" "cluster_floatingip_assoc" {
+  floating_ip = "{{ cluster_floating_ip_address }}"
+  instance_id = "${openstack_compute_instance_v2.cluster_server.id}"
+  fixed_ip    = "${openstack_compute_instance_v2.cluster_server.network.0.fixed_ip_v4}"
 }
+{% endif %}
 
 
 #####
@@ -195,7 +206,8 @@ resource "openstack_compute_instance_v2" "cluster_server" {
     azimuth_project_id = "${data.openstack_identity_auth_scope_v3.scope.project_id}"
     guacamole_user = "ipuuser"
     appliance_type = "compute"
-    appliance_pub_ip = "${openstack_networking_floatingip_v2.app-fip.address}"
+    appliance_pub_ip = "{{cluster_floating_ip_address | default('none')}}"
+    #appliance_pub_ip = "${openstack_networking_floatingip_v2.app-fip.address}"
     ldap_auth_token = "{{ ldap_auth_token }}"
     nethome_secret  = "{{ cephfs_nethome_secret | b64encode }}"
     appliance_lifetime_hrs = "{{ appliance_lifetime_hrs is defined | ternary(appliance_lifetime_hrs, 'none') }}"
