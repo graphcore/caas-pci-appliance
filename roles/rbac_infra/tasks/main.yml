@@ -9,7 +9,7 @@
 - name: Get ID of common_ctrl network
   openstack.cloud.networks_info:
     cloud: openstack
-    name: azimuth-vpod-common-ctrl
+    name: "{{common_control_net}}"
   register: ctrl_result
   environment:
     OS_CLIENT_CONFIG_FILE: "/etc/openstack/clouds.yaml"
