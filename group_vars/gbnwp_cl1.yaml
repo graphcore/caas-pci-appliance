@@ -2,6 +2,8 @@
 auth_url: "https://gbnwp-cl1.ipu.graphcore.ai:5000"
 dns_base: "openstack.graphcore.ai."
 
+common_control_net: "azimuth-vpod-common-ctrl"
+
 ##
 # Required by vpod-nets, value doesn't matter in our context because we're not
 # routing the RNIC networks.
@@ -9,7 +11,8 @@ cidr_hint: "25"
 
 ##
 # LDAP access
-ldap_uri: "ldap://gcgbnwpvldapslave001.it.graphcore.ai ldap://gbbrsvldapslave002.it.graphcore.ai ldap://nooslvldapslave001.it.graphcore.ai ldap://gbbrsvldapmaster001.it.graphcore.ai"
+ldap_uri: "ldap://gcgbnwpvldapslave001.it.graphcore.ai ldap://gbbrsvldapslave002.it.graphcore.ai
+  ldap://nooslvldapslave001.it.graphcore.ai ldap://gbbrsvldapmaster001.it.graphcore.ai"
 ldap_base: "dc=bris,dc=graphcore,dc=ai"
 ldap_base_users: "ou=People,dc=bris,dc=graphcore,dc=ai"
 ldap_user: "uid=svcsysops-ldapbind"
