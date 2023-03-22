@@ -39,9 +39,9 @@ parameters:
         - "b. amdvcpu.medium - 120 AMD cpus, 100 GB RAM, 100 GB swap, 100 GB disk"
         - "c. amdvcpu.large - 240 AMD cpus, 200 GB RAM, 200 GB swap, 100 GB disk"
         - "d. amdvcpu.max - 240 AMD cpus, 400 GB RAM, 200 GB swap, 100 GB disk"
-        - "e. intelvcpu.mini4 - 4 Intel cpus, 8 GB RAM, 8 GB swap, 50 GB disk"
-        - "f. intelvcpu.small8 - 8 Intel cpus, 16 GB RAM, 16 GB swap, 50 GB disk"
-        - "g. intelvcpu.medium16 - 16 Intel cpus, 32 GB RAM, 32 GB swap, 50 GB disk"
+        - "e. intelvcpu.mini4 - 4 Intel cpus, 8 GB RAM, 8 GB swap, 100 GB disk"
+        - "f. intelvcpu.small8 - 8 Intel cpus, 16 GB RAM, 16 GB swap, 100 GB disk"
+        - "g. intelvcpu.medium16 - 16 Intel cpus, 32 GB RAM, 32 GB swap, 100 GB disk"
     immutable: true
 
   - name: cluster_volume_size
