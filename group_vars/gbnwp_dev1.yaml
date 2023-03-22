@@ -105,15 +105,3 @@ controller_oauthtoken: !vault |
 controller_username: admin
 controller_host: http://awx-service
 validate_certs: no
-
-##
-# Temporary addition for SYSOP-1579 test
-# Move this to extravars for prod
-openstack_uuid:
-  a: "8a7bce4c-5e91-11ed-b862-78ac4471e7e0"
-  b: "7057374e-4be1-11ed-a877-acde48001122"
-  c: "d623e2d4-4be1-11ed-a877-acde48001122"
-  d: "d64322d4-4be1-11ed-a877-acde48001122"
-  e: "a3ef7219-5f02-4f76-bc8c-8e2d73d6c752"
-  f: "227ddd90-ac67-486d-8254-f5c92d360e8d"
-  g: "af8ab624-5d21-4cd2-a34b-46c2cfb584ba"
