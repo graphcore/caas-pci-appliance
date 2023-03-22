@@ -19,14 +19,30 @@ parameters:
         - "Ubuntu 18.04"
     immutable: true
 
-  - name: cluster_flavor
-    kind: cloud.size
-    label: "Choose the size/capabilty of the appliance"
-    description: The size of the appliance.
-    immutable: true
+  # - name: cluster_flavor
+  #   kind: cloud.size
+  #   label: "Choose the size/capabilty of the appliance"
+  #   description: The size of the appliance.
+  #   immutable: true
+  #   options:
+  #     min_ram: 4096
+  #     min_disk: 10
+
+  - name: appliance_flavour
+    label: "Select appliance flavour"
+    description: |-
+      The size and capability of the appliance
+    kind: choice
     options:
-      min_ram: 4096
-      min_disk: 10
+      choices:
+        - "a. AMD Small - 60 AMD cpus, 50 GB RAM, 200 GB swap, 100 GB disk"
+        - "b. AMD Medium - 120 AMD cpus, 100 GB RAM, 100 GB swap, 100 GB disk"
+        - "c. AMD Large - 240 AMD cpus, 200 GB RAM, 200 GB swap, 100 GB disk"
+        - "d. AMD Max - 240 AMD cpus, 400 GB RAM, 200 GB swap, 100 GB disk"
+        - "e. Intel Mini - 4 Intel cpus, 8 GB RAM, 8 GB swap, 50 GB disk"
+        - "f. Intel Small - 8 Intel cpus, 16 GB RAM, 16 GB swap, 50 GB disk"
+        - "g. Intel Medium - 16 Intel cpus, 32 GB RAM, 32 GB swap, 50 GB disk"
+    immutable: true
 
   - name: cluster_volume_size
     label: "Data volume size (GB)"
