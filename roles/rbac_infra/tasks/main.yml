@@ -9,7 +9,7 @@
 - name: Get ID of common_ctrl network
   openstack.cloud.networks_info:
     cloud: openstack
-    name: "{{common_control_net}}"
+    name: "{{control_network_name}}"
   register: ctrl_result
   environment:
     OS_CLIENT_CONFIG_FILE: "/etc/openstack/clouds.yaml"
@@ -34,7 +34,7 @@
 - name: Get ID of common_storage network
   openstack.cloud.networks_info:
     cloud: openstack
-    name: azimuth-vpod-common-storage
+    name: "{{storage_network_name}}"
   register: storage_result
   environment:
     OS_CLIENT_CONFIG_FILE: "/etc/openstack/clouds.yaml"

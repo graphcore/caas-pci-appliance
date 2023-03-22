@@ -12,7 +12,7 @@
 #   "gc_tenancy": "gbnwp_dev1"
 # }
 
-common_control_net: "azimuth-dev1-vpod-common-ctrl"
+control_network_name: "azimuth-dev1-vpod-common-ctrl"
 storage_network_name: "azimuth-dev1-vpod-common-storage"
 
 ##
