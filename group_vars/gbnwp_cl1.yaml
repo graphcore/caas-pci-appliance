@@ -3,6 +3,7 @@ auth_url: "https://gbnwp-cl1.ipu.graphcore.ai:5000"
 dns_base: "openstack.graphcore.ai."
 
 control_network_name: "azimuth-vpod-common-ctrl"
+storage_network_name: "azimuth-vpod-common-storage"
 
 ##
 # Required by vpod-nets, value doesn't matter in our context because we're not
