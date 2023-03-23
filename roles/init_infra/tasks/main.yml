@@ -39,6 +39,8 @@
 - name: Handle appliance_flavour
   ansible.builtin.set_fact:
     cluster_flavor: "{{ openstack_uuid[appliance_flavour | split('.') | first ] }}"
+  when:
+    - appliance_flavour is defined and appliance_flavour
 
 - name: Log appliance name
   ansible.builtin.debug:
