@@ -67,7 +67,7 @@ parameters:
         - 12
         - 24
         - 48
-        - "never"
+        - "forever"
 
   - name: cluster_floating_ip
     label: External IP for SSH access
