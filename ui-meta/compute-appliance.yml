@@ -58,7 +58,7 @@ parameters:
   - name: appliance_lifetime_hrs
     label: "Select appliance lifetime (hrs)"
     description: The appliance will be deleted after this time
-    immutable: true
+    immutable: false
     kind: choice
     options:
       choices:
@@ -67,7 +67,7 @@ parameters:
         - 12
         - 24
         - 48
-        - "forever"
+        - 719
 
   - name: cluster_floating_ip
     label: External IP for SSH access
