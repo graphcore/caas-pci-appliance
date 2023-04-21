@@ -2,6 +2,10 @@
   ansible.builtin.debug:
     msg: "Application credential name: {{ appcred_name }} for user {{appliance_user}}"
 
+- name: Set appliance_state to a neutral value
+  ansible.builtin.set_fact:
+    appliance_state: shiny
+
 - name: Test if the appliance is already created (using AppCred as flag)
   block:
     - name: Try to get the AWX credential
@@ -15,18 +19,22 @@
       register: existing_credential
       failed_when: "existing_credential.assets.credentials | length != 1"
 
+    # - name: Get the appliance deletion epoch from the AppCred
+    #   ansible.builtin.set_fact:
+    #     appliance_deletion_epoch: "{{ existing_credential.assets.credentials[0].inputs.application_credential_expiry}}"
     - name: Get the appliance deletion epoch from the AppCred
       ansible.builtin.set_fact:
-        appliance_deletion_epoch: "{{ existing_credential.assets.credentials[0].inputs.application_credential_expiry}}"
+        old_appliance_deletion_epoch: "{{ existing_credential.assets.credentials[0].inputs.application_credential_expiry}}"
 
     - name: Appliance already exists
       ansible.builtin.set_fact:
         appliance_state: update
+      when: old_appliance_deletion_epoch is search("never")
   rescue:
     - name: Appliance is being created for first time
       ansible.builtin.set_fact:
         appliance_state: create
-
+  always:
     - name: Calculate expiration time from now + lifetime + 1 hr
       ansible.builtin.shell:
         cmd: date -d '{{ (appliance_lifetime_hrs | int + 1) * 60 }} mins' +'%FT%T'
@@ -34,7 +42,7 @@
       register: appcred_expiry_result
       when:
         - appliance_lifetime_hrs is defined
-        - not appliance_lifetime_hrs is search("never")
+        #- not appliance_lifetime_hrs is search("never")
 
     - name: Calculate deletion time from now + lifetime
       ansible.builtin.shell:
@@ -42,7 +50,7 @@
       register: appliance_deletion_result
       when:
         - appliance_lifetime_hrs is defined
-        - not appliance_lifetime_hrs is search("never")
+        #- not appliance_lifetime_hrs is search("never")
 
     - name: Set time facts during creation
       ansible.builtin.set_fact:
@@ -57,22 +65,22 @@
 - name: Create long-lived AppCred for user
   when:
     - not terraform_state is search("absent")
-    - appliance_state is search("create")
+    - appliance_state is search("create") or appliance_state is search("update")
   block:
     #TODO: consider making AppCred name more unique (OpenStack complains)
-    - name: Test getting user AppCred
+    - name: Get user AppCred from OpenStack
       ansible.builtin.shell:
         cmd: openstack application credential create -f yaml --expiration {{appcred_expiry_epoch}}
           {{appcred_name}}
       register: user_appcred_req
-      when: not appliance_deletion_epoch is search("never")
+      #when: not appliance_deletion_epoch is search("never")
 
     - name: Convert AppCred to YAML
       ansible.builtin.set_fact:
         user_appcred: "{{ user_appcred_req.stdout | from_yaml }}"
-      when: not appliance_deletion_epoch is search("never")
+        # when: not appliance_deletion_epoch is search("never")
 
-    - name: Create AWX credential
+    - name: Create OR update AWX credential
       local_action:
         module: awx.awx.credential
         name: "{{ appcred_name }}"
@@ -95,8 +103,8 @@
 - name: Schedule appliance deletion
   when:
     - not terraform_state is search("absent")
-    - appliance_state is search("create")
-    - not appliance_deletion_epoch is search("never")
+    - appliance_state is search("create") or appliance_state is search("update")
+    #    - not appliance_deletion_epoch is search("never")
   block:
     - name: Schedule appliance deletion
       local_action:
@@ -120,7 +128,7 @@
 - name: Appliance clean-up, remove schedule
   when:
     - terraform_state is search("absent")
-    - not appliance_deletion_epoch is search("never")
+    #- not appliance_deletion_epoch is search("never")
   block:
     - name: Schedule appliance deletion
       local_action:
