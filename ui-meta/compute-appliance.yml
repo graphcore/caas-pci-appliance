@@ -58,7 +58,7 @@ parameters:
   - name: appliance_lifetime_hrs
     label: "Select appliance lifetime (hrs)"
     description: The appliance will be deleted after this time
-    immutable: false
+    immutable: true
     kind: choice
     options:
       choices:
