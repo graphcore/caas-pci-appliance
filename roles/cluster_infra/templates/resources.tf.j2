@@ -76,7 +76,7 @@ resource "openstack_networking_port_v2" "ext" {
 }
 
 ##
-# This block brings up the storage network interface
+# This block brings up the common storage network interface
 #
 data "openstack_networking_network_v2" "stornet" {
   tags = [ "storage", "azimuth-vpod-common-storage" ]
@@ -96,6 +96,26 @@ resource "openstack_networking_port_v2" "stor" {
   port_security_enabled = "false"
 }
 
+##
+# This block brings up the svc-storage network interface
+#
+data "openstack_networking_network_v2" "svc-stornet" {
+  tags = [ "storage", "svc-storage" ]
+}
+
+data "openstack_networking_subnet_v2" "svc-storsub" {
+  tags = [ "storage", "svc-storage" ]
+}
+
+resource "openstack_networking_port_v2" "svc-stor" {
+  name      = "{{ cluster_name }}-{{ cluster_type }}-svc-stor"
+  network_id     = data.openstack_networking_network_v2.svc-stornet.id
+  admin_state_up = "true"
+  fixed_ip {
+    subnet_id = data.openstack_networking_subnet_v2.svc-storsub.id
+  }
+  port_security_enabled = "false"
+}
 
 ##
 # This block allocates a public floating IP to the appliance
@@ -150,6 +170,14 @@ resource "openstack_compute_instance_v2" "cluster_server" {
         content: |
           [Match]
           MACAddress=${openstack_networking_port_v2.stor.mac_address}
+          [Network]
+          DHCP=yes
+          [DHCPv4]
+          UseDNS=false
+      - path: /etc/systemd/network/09-svc-stor.network
+        content: |
+          [Match]
+          MACAddress=${openstack_networking_port_v2.svc-stor.mac_address}
           [Network]
           DHCP=yes
           [DHCPv4]
@@ -233,6 +261,10 @@ resource "openstack_compute_instance_v2" "cluster_server" {
 
   network {
     port = "${openstack_networking_port_v2.stor.id}"
+  }
+
+  network {
+    port = "${openstack_networking_port_v2.svc-stor.id}"
   }
 }
 
