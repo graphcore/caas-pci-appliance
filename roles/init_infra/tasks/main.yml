@@ -62,7 +62,7 @@
 
 - name: Set various facts
   ansible.builtin.set_fact:
-    appliance_user: "{{ ldap_uid_out.results[0].uid | first | lower }}"
+    appliance_user: "{{ ldap_uid_out.results[0].uid | lower }}"
     appliance_project: "{{ openstack_cli_proj.stdout | default( 'ipuops') }}"
     appliance_tenancy: "{{ openstack_cli_tenancy_name.stdout | default( 'ipuops')
       }}"
