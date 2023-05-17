@@ -47,10 +47,22 @@
       {{cluster_name}} of flavour {{cluster_flavor}} & ID {{cluster_id}} &lifetime
       {{appliance_lifetime_hrs is defined | ternary(appliance_lifetime_hrs, 'none')}}"
 
+- name: Search ldap because some users don't have user id the same as their emails
+  community.general.ldap_search:
+    server_uri: ldap://gbnwpvldapslave001.it.graphcore.ai
+    bind_dn: uid=svcsysops-ldapbind,ou=People,dc=bris,dc=graphcore,dc=ai
+    dn: dc=bris,dc=graphcore,dc=ai
+    bind_pw: "{{ ldap_auth_token }}"
+    attrs:
+      - uid
+    scope: subordinate
+    filter: "mail={{openstack_cli_user.stdout}}"
+  register: ldap_uid_out
+  #  delegate_to: localhost
+
 - name: Set various facts
   ansible.builtin.set_fact:
-    appliance_user: "{{ (openstack_cli_user.stdout | split('@') | first | lower) if
-      '@' in openstack_cli_user.stdout else openstack_cli_user.stdout | lower }}"
+    appliance_user: "{{ ldap_uid_out.results[0].uid | first | lower }}"
     appliance_project: "{{ openstack_cli_proj.stdout | default( 'ipuops') }}"
     appliance_tenancy: "{{ openstack_cli_tenancy_name.stdout | default( 'ipuops')
       }}"
