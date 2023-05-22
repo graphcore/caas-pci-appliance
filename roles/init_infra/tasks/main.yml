@@ -64,7 +64,7 @@
   ansible.builtin.fail:
     msg: "Cannot find your LDAP uid or ssh public key."
   when:
-    - ldap_uid_out.results[0].uid is not defined or ldap_uid_out.results[0].sshPubKey
+    - ldap_uid_out.results[0].uid is not defined or ldap_uid_out.results[0].sshPublicKey
       is not defined
 
 - name: Set various facts
