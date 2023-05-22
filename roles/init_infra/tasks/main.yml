@@ -49,7 +49,7 @@
 
 - name: Search ldap because some users don't have user id the same as their emails
   community.general.ldap_search:
-    server_uri: ldap://gbnwpvldapslave001.it.graphcore.ai
+    server_uri: ldap://gbnwpvldapslave001.it.graphcore.ai,ldap://gbnwpvldapslave002.it.graphcore.ai,ldap://gbbrsvldapslave001.it.graphcore.ai,ldap://gbbrsvldapslave002.it.graphcore.ai
     bind_dn: uid=svcsysops-ldapbind,ou=People,dc=bris,dc=graphcore,dc=ai
     dn: dc=bris,dc=graphcore,dc=ai
     bind_pw: "{{ ldap_auth_token }}"
