@@ -55,10 +55,17 @@
     bind_pw: "{{ ldap_auth_token }}"
     attrs:
       - uid
+      - sshPublicKey
     scope: subordinate
     filter: "mail={{openstack_cli_user.stdout}}"
   register: ldap_uid_out
-  #  delegate_to: localhost
+
+- name: Fail if we can't find uid or if user doesn't have an ssh key
+  ansible.builtin.fail:
+    msg: "Cannot find your LDAP uid or ssh public key."
+  when:
+    - ldap_uid_out.results[0].uid is not defined or ldap_uid_out.results[0].sshPubKey
+      is not defined
 
 - name: Set various facts
   ansible.builtin.set_fact:
