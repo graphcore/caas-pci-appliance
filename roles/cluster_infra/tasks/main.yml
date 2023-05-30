@@ -56,6 +56,19 @@
   loop_control:
     loop_var: cluster_tf_var
 
+- name: Slurp the resources file as templated
+  ansible.builtin.slurp:
+    src: "{{ terraform_project_path }}/resources.tf"
+  register: resources_b64
+
+- name: decode slurped file
+  set_fact:
+    resources_ascii: "{{ resources_b64['content'] | b64decode  }}"
+
+- name: print resources
+  ansible.builtin.debug:
+    var: resources_ascii
+
 - name: Test if appliance VM exists
   ansible.builtin.shell:
     cmd: openstack server list --name {{cluster_name}}

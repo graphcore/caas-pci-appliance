@@ -78,6 +78,7 @@ resource "openstack_networking_port_v2" "ext" {
 ##
 # This block brings up the common storage network interface
 #
+{% if storage_network_name is defined %}
 data "openstack_networking_network_v2" "stornet" {
   tags = [ "storage", "azimuth-vpod-common-storage" ]
 }
@@ -95,16 +96,18 @@ resource "openstack_networking_port_v2" "stor" {
   }
   port_security_enabled = "false"
 }
+{% endif %}
 
 ##
 # This block brings up the svc-storage network interface
 #
+{% if svc_storage_network_name is defined %}
 data "openstack_networking_network_v2" "svc-stornet" {
-  tags = [ "storage", "svc-storage" ]
+  tags = [ "{{ svc_storage_network_name | default('svc-storage') }}" ]
 }
 
 data "openstack_networking_subnet_v2" "svc-storsub" {
-  tags = [ "storage", "svc-storage" ]
+  tags = [ "storage", "{{ svc_storage_network_name | default('svc-storage') }}" ]
 }
 
 resource "openstack_networking_port_v2" "svc-stor" {
@@ -116,19 +119,12 @@ resource "openstack_networking_port_v2" "svc-stor" {
   }
   port_security_enabled = "false"
 }
+{% endif %}
 
 ##
 # This block allocates a public floating IP to the appliance
 #
-# resource "openstack_networking_floatingip_v2" "app-fip" {
-#   pool = "external"
-#   port_id = "${openstack_networking_port_v2.ext.id}"
-# }
 {% if cluster_floating_ip_address is defined and cluster_floating_ip_address %}
-#####
-##### Floating IP association
-#####
-
 resource "openstack_compute_floatingip_associate_v2" "cluster_floatingip_assoc" {
   floating_ip = "{{ cluster_floating_ip_address }}"
   instance_id = "${openstack_compute_instance_v2.cluster_server.id}"
@@ -155,8 +151,6 @@ resource "openstack_compute_instance_v2" "cluster_server" {
 
   user_data = <<-EOF
     #cloud-config
-    mounts:
-      - [ ephemeral0, /localdata, auto, "defaults,nofail" ]
     write_files:
       - path: /etc/systemd/network/05-ext.network
         content: |
@@ -166,6 +160,7 @@ resource "openstack_compute_instance_v2" "cluster_server" {
           DHCP=yes
           [DHCPv4]
           UseDNS=yes
+{% if storage_network_name is defined %}
       - path: /etc/systemd/network/07-stor.network
         content: |
           [Match]
@@ -174,6 +169,8 @@ resource "openstack_compute_instance_v2" "cluster_server" {
           DHCP=yes
           [DHCPv4]
           UseDNS=false
+{% endif %}
+{% if svc_storage_network_name is defined %}
       - path: /etc/systemd/network/09-svc-stor.network
         content: |
           [Match]
@@ -182,6 +179,7 @@ resource "openstack_compute_instance_v2" "cluster_server" {
           DHCP=yes
           [DHCPv4]
           UseDNS=false
+{% endif %}
       - path: /etc/motd
         content: |
            ##############################################################################
@@ -200,20 +198,21 @@ resource "openstack_compute_instance_v2" "cluster_server" {
            #  Deletion scheduled on: {{ appliance_deletion_epoch is search('never')|ternary('Not planning to die',appliance_deletion_epoch)}}                                #
            #                                                                            #
            ##############################################################################
-
-      - path: /etc/ceph/cephfspublic.secret
+{% for key, value in cephfs_secrets.items() %}
+      - path: /etc/ceph/{{key}}.secret
         owner: root:root
-        permissions: 0600
+        permissions: "0600"
         content: |
-           {{cephfs_public_secret}}
-{% if additional_mounts is defined and additional_mounts %}
-      - path: /etc/ansible-init/includes/fstab.addendum
-        content: |
-{% for mnt in additional_mounts %}
-           {{mnt.fs_spec}} {{mnt.fs_file}} {{mnt.fs_vfstype}} {{mnt.fs_mntops}} {{mnt.fs_freq}} {{mnt.fs_passno}}
+           {{value}}
 {% endfor %}
-{% endif %}
+    mounts:
+      - [ ephemeral0, /localdata, auto, "defaults,nofail" ]
+{% for key, value in additional_mounts.items() %}
+      - [ {{value|replace('PLACEHOLDER', appliance_user)}} ]
+{% endfor %}
     runcmd:
+      - [ systemctl, daemon-reload ]
+      - [ systemctl, restart, remote-fs.target ]
       - [ systemctl, restart, systemd-networkd]
   EOF
 
@@ -235,9 +234,6 @@ resource "openstack_compute_instance_v2" "cluster_server" {
     guacamole_user = "ipuuser"
     appliance_type = "compute"
     appliance_pub_ip = "{{cluster_floating_ip_address | default('none')}}"
-    #appliance_pub_ip = "${openstack_networking_floatingip_v2.app-fip.address}"
-    #ldap_auth_token = "{{ ldap_auth_token }}"
-    nethome_secret  = "{{ cephfs_nethome_secret | b64encode }}"
     appliance_lifetime_hrs = "{{ appliance_lifetime_hrs is defined | ternary(appliance_lifetime_hrs, 'none') }}"
     appliance_termination_epoch = "{{ appliance_deletion_epoch }}"
   }
@@ -259,13 +255,17 @@ resource "openstack_compute_instance_v2" "cluster_server" {
     port = "${openstack_networking_port_v2.ext.id}"
   }
 
+{% if storage_network_name is defined %}
   network {
     port = "${openstack_networking_port_v2.stor.id}"
   }
+{% endif %}
 
+{% if svc_storage_network_name is defined %}
   network {
     port = "${openstack_networking_port_v2.svc-stor.id}"
   }
+{% endif %}
 }
 
 resource "openstack_compute_volume_attach_v2" "zenith_volume" {
