@@ -5,7 +5,8 @@
   vars:
     image_name: "{{ poplar_appliance_images | selectattr('name', 'equalto', operating_system)
       | map(attribute='image_name') | first }}"
-    image_tag: "{{ image_tag if image_tag is defined else default_image_tag }}"
+    image_tag: "{{ ((openstack_image_tag == None) | ternary(default_image_tag, openstack_image_tag))
+      if openstack_image_tag is defined else default_image_tag }}"
     execution_order:
       - "{{ (terraform_state == 'present' or terraform_state == 'absent') | ternary('init_infra','')
         }}"
