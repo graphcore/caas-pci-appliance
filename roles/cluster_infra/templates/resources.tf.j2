@@ -199,6 +199,7 @@ resource "openstack_compute_instance_v2" "cluster_server" {
            #  Deletion scheduled on: {{ appliance_deletion_epoch is search('never')|ternary('Not planning to die ',appliance_deletion_epoch ~ 'Z')}}                               #
            #                                                                            #
            ##############################################################################
+{% if cephfs_secrets is defined and ceph_secrets %}
 {% for key, value in cephfs_secrets.items() %}
       - path: /etc/ceph/{{key}}.secret
         owner: root:root
@@ -206,11 +207,14 @@ resource "openstack_compute_instance_v2" "cluster_server" {
         content: |
            {{value}}
 {% endfor %}
+{% endif %}
     mounts:
       - [ ephemeral0, /localdata, auto, "defaults,nofail" ]
+{% if additional_mounts is defined and additional_mounts %}
 {% for key, value in additional_mounts.items() %}
       - [ {{value|replace('PLACEHOLDER', appliance_user)}} ]
 {% endfor %}
+{% endif %}
     runcmd:
       - [ systemctl, daemon-reload ]
       - [ systemctl, restart, remote-fs.target ]
