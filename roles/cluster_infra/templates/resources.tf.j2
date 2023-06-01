@@ -107,7 +107,8 @@ data "openstack_networking_network_v2" "svc-stornet" {
 }
 
 data "openstack_networking_subnet_v2" "svc-storsub" {
-  tags = [ "storage", "{{ svc_storage_network_name | default('svc-storage') }}" ]
+  #tags = [ "storage", "{{ svc_storage_network_name | default('svc-storage') }}" ]
+  tags = [ "{{ svc_storage_network_name | default('svc-storage') }}" ]
 }
 
 resource "openstack_networking_port_v2" "svc-stor" {
