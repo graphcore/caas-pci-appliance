@@ -210,8 +210,8 @@ resource "openstack_compute_instance_v2" "cluster_server" {
 {% endif %}
     mounts:
       - [ ephemeral0, /localdata, auto, "defaults,nofail" ]
-{% if additional_mounts is defined and additional_mounts %}
-{% for key, value in additional_mounts.items() %}
+{% if cloud_init_mounts is defined and cloud_init_mounts %}
+{% for key, value in cloud_init_mounts.items() %}
       - [ {{value|replace('PLACEHOLDER', appliance_user)}} ]
 {% endfor %}
 {% endif %}
