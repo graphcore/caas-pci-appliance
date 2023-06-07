@@ -3,7 +3,7 @@
 - name: Create or destroy appliance
   hosts: openstack
   vars:
-    image_name: "{{ poplar_appliance_images | selectattr('name', 'equalto', operating_system)
+    image_name: "{{ pci_appliance_images | selectattr('name', 'equalto', operating_system)
       | map(attribute='image_name') | first }}"
     image_tag: "{{ ((openstack_image_tag == None) | ternary(default_image_tag, openstack_image_tag))
       if openstack_image_tag is defined else default_image_tag }}"

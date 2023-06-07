@@ -30,13 +30,13 @@ cluster_ssh_user: ipuuser
 # These are the images that will be available for user selection
 # TODO: What images do we want to base the compute appliances on?
 default_image_tag: "gc_tag_latest"
-poplar_appliance_images:
+pci_appliance_images:
   - name: "Ubuntu 22.04"
     friendly: "Jammy"
-    image_name: "ubuntu22.04-azimuth-poplar"
+    image_name: "ubuntu22.04-azimuth-poplar-pci"
   - name: "Ubuntu 20.04"
     friendly: "Focal"
-    image_name: "ubuntu20.04-azimuth-poplar"
+    image_name: "ubuntu20.04-azimuth-poplar-pci"
   - name: "Ubuntu 18.04"
     friendly: "Bionic"
-    image_name: "ubuntu18.04-azimuth-poplar"
+    image_name: "ubuntu18.04-azimuth-poplar-pci"
