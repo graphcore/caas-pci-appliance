@@ -84,6 +84,17 @@
   ansible.builtin.set_fact:
     appliance_deletion_epoch: "{{ appliance_deletion_result.stdout is defined | ternary(appliance_deletion_result.stdout, 'never') }}"
 
+- name: Discover if user has a customization playbook
+  ansible.builtin.uri:
+    url: "https://gitlab-ee.it.graphcore.ai/{{appliance_user}}/custom-cloud/-/raw/main/{{gc_cloud}}.yml"
+    timeout: 60
+  register: custom_playbook
+  ignore_errors: true
+
+- name: Debug the uri output
+  ansible.builtin.debug:
+    var: custom_playbook
+
 - name: Import tasks for awx, when required
   ansible.builtin.import_tasks: awx.yml
   when: awx_skip is not defined
