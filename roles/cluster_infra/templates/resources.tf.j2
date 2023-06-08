@@ -216,6 +216,7 @@ resource "openstack_compute_instance_v2" "cluster_server" {
 {% endfor %}
 {% endif %}
     runcmd:
+      - [sed, -i, -e, '/^ipupod.*$/s/$/,{{appliance_user}}/', /etc/group]
       - [ systemctl, daemon-reload ]
       - [ systemctl, restart, remote-fs.target ]
       - [ systemctl, restart, systemd-networkd]
