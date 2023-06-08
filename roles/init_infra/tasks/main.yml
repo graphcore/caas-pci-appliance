@@ -8,8 +8,7 @@
 
 - name: Get openstack user name
   ansible.builtin.shell:
-    cmd: openstack user show "$(openstack token issue -f value -c user_id)" -f value
-      -c name
+    cmd: openstack user show "$(openstack token issue -f value -c user_id)" -f value -c name
   register: openstack_cli_user
 
 - name: Get user's openstack project ID
@@ -19,8 +18,7 @@
 
 - name: Get tenancy name
   ansible.builtin.shell:
-    cmd: openstack project show "$(openstack token issue -f value -c project_id)"
-      -f value -c name
+    cmd: openstack project show "$(openstack token issue -f value -c project_id)" -f value -c name
   register: openstack_cli_tenancy_name
 
 - name: Include the vars we need
@@ -43,9 +41,7 @@
 
 - name: Log appliance name
   ansible.builtin.debug:
-    msg: "{{(terraform_state == 'present') | ternary ('Building','Destroying')}} {{cluster_type}}
-      {{cluster_name}} of flavour {{cluster_flavor}} & ID {{cluster_id}} &lifetime
-      {{appliance_lifetime_hrs is defined | ternary(appliance_lifetime_hrs, 'none')}}"
+    msg: "{{(terraform_state == 'present') | ternary ('Building','Destroying')}} {{cluster_type}} {{cluster_name}} of flavour {{cluster_flavor}} & ID {{cluster_id}} &lifetime {{appliance_lifetime_hrs is defined | ternary(appliance_lifetime_hrs, 'none')}}"
 
 - name: Search ldap because some users don't have user id the same as their emails
   community.general.ldap_search:
@@ -59,20 +55,21 @@
     scope: subordinate
     filter: "mail={{openstack_cli_user.stdout}}"
   register: ldap_uid_out
+  when:
+    - terraform_state is search("present")
 
 - name: Fail if we can't find uid or if user doesn't have an ssh key
   ansible.builtin.fail:
     msg: "Cannot find your LDAP uid or ssh public key."
   when:
-    - ldap_uid_out.results[0].uid is not defined or ldap_uid_out.results[0].sshPublicKey
-      is not defined
+    - ldap_uid_out.results[0].uid is not defined or ldap_uid_out.results[0].sshPublicKey is not defined
+    - terraform_state is search("present")
 
 - name: Set various facts
   ansible.builtin.set_fact:
     appliance_user: "{{ ldap_uid_out.results[0].uid | lower }}"
     appliance_project: "{{ openstack_cli_proj.stdout | default( 'ipuops') }}"
-    appliance_tenancy: "{{ openstack_cli_tenancy_name.stdout | default( 'ipuops')
-      }}"
+    appliance_tenancy: "{{ openstack_cli_tenancy_name.stdout | default( 'ipuops') }}"
     appcred_name: "{{ cluster_name }}_{{ cluster_id }}"
 
 # TODO: get CRD to inject its calcuated delete time
@@ -87,8 +84,7 @@
 
 - name: Set time facts during creation
   ansible.builtin.set_fact:
-    appliance_deletion_epoch: "{{ appliance_deletion_result.stdout is defined | ternary(appliance_deletion_result.stdout,
-      'never') }}"
+    appliance_deletion_epoch: "{{ appliance_deletion_result.stdout is defined | ternary(appliance_deletion_result.stdout, 'never') }}"
 
 - name: Import tasks for awx, when required
   ansible.builtin.import_tasks: awx.yml
