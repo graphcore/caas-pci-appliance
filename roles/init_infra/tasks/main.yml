@@ -55,8 +55,6 @@
     scope: subordinate
     filter: "mail={{openstack_cli_user.stdout}}"
   register: ldap_uid_out
-  when:
-    - terraform_state is search("present")
 
 - name: Fail if we can't find uid or if user doesn't have an ssh key
   ansible.builtin.fail:
@@ -67,7 +65,7 @@
 
 - name: Set various facts
   ansible.builtin.set_fact:
-    appliance_user: "{{ ldap_uid_out.results[0].uid | lower }}"
+    appliance_user: "{{ ldap_uid_out.results[0].uid | lower if ldap_uid_out.results | length > 0 else 'default1' | default('default2') }}"
     appliance_project: "{{ openstack_cli_proj.stdout | default( 'ipuops') }}"
     appliance_tenancy: "{{ openstack_cli_tenancy_name.stdout | default( 'ipuops') }}"
     appcred_name: "{{ cluster_name }}_{{ cluster_id }}"
