@@ -90,6 +90,11 @@ usage_template: |-
   $ ssh {{ cluster.outputs.cluster_user | default("ubuntu") }}@{{ cluster.outputs.cluster_access_ip | default("[cluster ip]") }}
   ```
 
+  Alternatively, if you have another appliance you can jump through that to connect with this one:
+  ```
+  $ ssh -J <other_appliance> {{ cluster.outputs.cluster_user | default("ubuntu") }}@{{ cluster.outputs.cluster_ctrl_ip | default("[cluster ip]") }}
+  ```
+
   The following environment variables have been set in the appliance:
 
   ```
@@ -102,6 +107,7 @@ usage_template: |-
 
   Monitoring dashboards for the appliance are available using the [Monitoring service]({{ monitoring.url }}).
 
+  Appliance version: {{ cluster.outputs.cluster_version }}
 
 services:
   - name: webconsole

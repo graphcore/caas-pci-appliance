@@ -82,7 +82,7 @@
 
 - name: Set time facts during creation
   ansible.builtin.set_fact:
-    appliance_deletion_epoch: "{{ appliance_deletion_result.stdout is defined | ternary(appliance_deletion_result.stdout, 'never') }}"
+    appliance_deletion_epoch: "{{ (appliance_deletion_result.stdout is defined and appliance_deletion_epoch is not defined) | ternary(appliance_deletion_result.stdout, 'never') }}"
 
 - name: Discover if user has a customization playbook
   ansible.builtin.uri:
