@@ -54,22 +54,22 @@ resource "openstack_blockstorage_volume_v3" "data_volume" {
 #####
 
 ##
-# This block brings up a common access network interface
+# This block brings up a Ctrl network interface
 #
-data "openstack_networking_network_v2" "extnet" {
-  tags = [ "ctrl", "azimuth-vpod-common-ctrl" ]
+data "openstack_networking_network_v2" "ctrlnet" {
+  tags = [ "ctrl", "{{ control_network_name | default('azimuth-vpod-common-ctrl') }}" ]
 }
 
-data "openstack_networking_subnet_v2" "extsub" {
-  tags = [ "ctrl", "azimuth-vpod-common-ctrl" ]
+data "openstack_networking_subnet_v2" "ctrlsub" {
+  tags = [ "ctrl", "{{ control_network_name | default('azimuth-vpod-common-ctrl') }}" ]
 }
 
-resource "openstack_networking_port_v2" "ext" {
-  name      = "{{ cluster_name }}-{{ cluster_type }}-ext"
-  network_id     = data.openstack_networking_network_v2.extnet.id
+resource "openstack_networking_port_v2" "ctrl" {
+  name      = "{{ cluster_name }}-{{ cluster_type }}-ctrl"
+  network_id     = data.openstack_networking_network_v2.ctrlnet.id
   admin_state_up = "true"
   fixed_ip {
-    subnet_id = data.openstack_networking_subnet_v2.extsub.id
+    subnet_id = data.openstack_networking_subnet_v2.ctrlsub.id
   }
   port_security_enabled = "true"
   security_group_ids = [ openstack_networking_secgroup_v2.cluster_secgroup.id ]
@@ -126,10 +126,9 @@ resource "openstack_networking_port_v2" "svc-stor" {
 # This block allocates a public floating IP to the appliance
 #
 {% if cluster_floating_ip_address is defined and cluster_floating_ip_address %}
-resource "openstack_compute_floatingip_associate_v2" "cluster_floatingip_assoc" {
+resource "openstack_compute_floatingip_associate_v2" "app-fip" {
   floating_ip = "{{ cluster_floating_ip_address }}"
-  instance_id = "${openstack_compute_instance_v2.cluster_server.id}"
-  fixed_ip    = "${openstack_compute_instance_v2.cluster_server.network.0.fixed_ip_v4}"
+  port_id = "${openstack_networking_port_v2.ctrl.id}"
 }
 {% endif %}
 
@@ -153,10 +152,10 @@ resource "openstack_compute_instance_v2" "cluster_server" {
   user_data = <<-EOF
     #cloud-config
     write_files:
-      - path: /etc/systemd/network/05-ext.network
+      - path: /etc/systemd/network/05-ctrl.network
         content: |
           [Match]
-          MACAddress=${openstack_networking_port_v2.ext.mac_address}
+          MACAddress=${openstack_networking_port_v2.ctrl.mac_address}
           [Network]
           DHCP=yes
           [DHCPv4]
@@ -251,7 +250,7 @@ resource "openstack_compute_instance_v2" "cluster_server" {
   }
 
   network {
-    port = "${openstack_networking_port_v2.ext.id}"
+    port = "${openstack_networking_port_v2.ctrl.id}"
   }
 
 {% if storage_network_name is defined %}
