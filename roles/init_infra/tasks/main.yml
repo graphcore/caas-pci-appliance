@@ -39,7 +39,7 @@
   when:
     - appliance_flavour is defined and appliance_flavour
 
-- name: Log appliance name
+- name: Log appliance details
   ansible.builtin.debug:
     msg: "{{(terraform_state == 'present') | ternary ('Building','Destroying')}} {{cluster_type}} {{cluster_name}} of flavour {{cluster_flavor}} & ID {{cluster_id}} &lifetime {{appliance_lifetime_hrs is defined | ternary(appliance_lifetime_hrs, 'none')}}"
 
@@ -58,7 +58,7 @@
 
 - name: Fail if we can't find uid or if user doesn't have an ssh key
   ansible.builtin.fail:
-    msg: "Cannot find your LDAP uid or ssh public key."
+    msg: "Cannot find your LDAP uid or ssh public key. Set an ssh key at: https://password.it.graphcore.ai/index.php?action=changesshkey"
   when:
     - ldap_uid_out.results[0].uid is not defined or ldap_uid_out.results[0].sshPublicKey is not defined
     - terraform_state is search("present")
@@ -94,7 +94,3 @@
 - name: Debug the uri output
   ansible.builtin.debug:
     var: custom_playbook
-
-- name: Import tasks for awx, when required
-  ansible.builtin.import_tasks: awx.yml
-  when: awx_skip is not defined

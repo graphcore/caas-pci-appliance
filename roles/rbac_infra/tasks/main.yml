@@ -77,9 +77,3 @@
     state: present
   environment:
     OS_CLIENT_CONFIG_FILE: "{{ admin_clouds_yaml }}"
-
-#
-# - name: Remove clouds.yaml file so next task runs as the Azimuth user
-#   ansible.builtin.file:
-#     state: absent
-#     path: "/etc/openstack/clouds.yaml"
