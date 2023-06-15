@@ -1,0 +1,31 @@
+# Modified and renamed by Graphcore Ltd.
+
+- name: Create or destroy appliance
+  hosts: openstack
+  vars:
+    image_name: "{{ poplar_appliance_images | selectattr('name', 'equalto', operating_system) | map(attribute='image_name') | first }}"
+    image_tag: "{{ ((openstack_image_tag == None) | ternary(default_image_tag, openstack_image_tag)) if openstack_image_tag is defined else default_image_tag }}"
+    execution_order:
+      - "{{ (terraform_state == 'present' or terraform_state == 'absent') | ternary('init_infra','') }}"
+      - "{{ (terraform_state == 'present') | ternary('rbac_infra','') }}"
+      - "{{ (terraform_state == 'present' or terraform_state == 'absent') | ternary('cluster_infra','') }}"
+  tasks:
+    - name: Include the roles needed
+      ansible.builtin.include_role:
+        name: "{{ item }}"
+      loop: "{{ execution_order | select | list }}"
+
+# Write the outputs as the final task
+- hosts: localhost
+  tasks:
+    - debug: var=outputs
+      vars:
+        outputs:
+          cluster_access_ip: "{{ cluster_floating_ip_address | default('') }}"
+          cluster_ctrl_ip: "{{ cluster_ctrl_ip | default('') }}"
+          cluster_user: "{{ hostvars[groups['openstack'][0]].appliance_user }}"
+          cluster_flavour_name: "{{ hostvars[groups['openstack'][0]].cluster_flavour_name }}"
+          cluster_operating_system: "{{ hostvars[groups['openstack'][0]].operating_system }}"
+          cluster_version: "{{ hostvars[groups['openstack'][0]].gc_azapp_version }}"
+          cluster_lifetime: "{{ hostvars[groups['openstack'][0]].appliance_lifetime_hrs }}"
+          cluster_termination_epoch: "{{ hostvars[groups['openstack'][0]].appliance_deletion_epoch }}"

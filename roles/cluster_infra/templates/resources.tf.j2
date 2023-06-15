@@ -54,22 +54,22 @@ resource "openstack_blockstorage_volume_v3" "data_volume" {
 #####
 
 ##
-# This block brings up a common access network interface
+# This block brings up a Ctrl network interface
 #
-data "openstack_networking_network_v2" "extnet" {
-  tags = [ "ctrl", "azimuth-vpod-common-ctrl" ]
+data "openstack_networking_network_v2" "ctrlnet" {
+  tags = [ "ctrl", "{{ control_network_name | default('azimuth-vpod-common-ctrl') }}" ]
 }
 
-data "openstack_networking_subnet_v2" "extsub" {
-  tags = [ "ctrl", "azimuth-vpod-common-ctrl" ]
+data "openstack_networking_subnet_v2" "ctrlsub" {
+  tags = [ "ctrl", "{{ control_network_name | default('azimuth-vpod-common-ctrl') }}" ]
 }
 
-resource "openstack_networking_port_v2" "ext" {
-  name      = "{{ cluster_name }}-{{ cluster_type }}-ext"
-  network_id     = data.openstack_networking_network_v2.extnet.id
+resource "openstack_networking_port_v2" "ctrl" {
+  name      = "{{ cluster_name }}-{{ cluster_type }}-ctrl"
+  network_id     = data.openstack_networking_network_v2.ctrlnet.id
   admin_state_up = "true"
   fixed_ip {
-    subnet_id = data.openstack_networking_subnet_v2.extsub.id
+    subnet_id = data.openstack_networking_subnet_v2.ctrlsub.id
   }
   port_security_enabled = "true"
   security_group_ids = [ openstack_networking_secgroup_v2.cluster_secgroup.id ]
@@ -107,7 +107,8 @@ data "openstack_networking_network_v2" "svc-stornet" {
 }
 
 data "openstack_networking_subnet_v2" "svc-storsub" {
-  tags = [ "storage", "{{ svc_storage_network_name | default('svc-storage') }}" ]
+  #tags = [ "storage", "{{ svc_storage_network_name | default('svc-storage') }}" ]
+  tags = [ "{{ svc_storage_network_name | default('svc-storage') }}" ]
 }
 
 resource "openstack_networking_port_v2" "svc-stor" {
@@ -125,10 +126,9 @@ resource "openstack_networking_port_v2" "svc-stor" {
 # This block allocates a public floating IP to the appliance
 #
 {% if cluster_floating_ip_address is defined and cluster_floating_ip_address %}
-resource "openstack_compute_floatingip_associate_v2" "cluster_floatingip_assoc" {
+resource "openstack_networking_floatingip_associate_v2" "app-fip" {
   floating_ip = "{{ cluster_floating_ip_address }}"
-  instance_id = "${openstack_compute_instance_v2.cluster_server.id}"
-  fixed_ip    = "${openstack_compute_instance_v2.cluster_server.network.0.fixed_ip_v4}"
+  port_id = "${openstack_networking_port_v2.ctrl.id}"
 }
 {% endif %}
 
@@ -152,10 +152,10 @@ resource "openstack_compute_instance_v2" "cluster_server" {
   user_data = <<-EOF
     #cloud-config
     write_files:
-      - path: /etc/systemd/network/05-ext.network
+      - path: /etc/systemd/network/05-ctrl.network
         content: |
           [Match]
-          MACAddress=${openstack_networking_port_v2.ext.mac_address}
+          MACAddress=${openstack_networking_port_v2.ctrl.mac_address}
           [Network]
           DHCP=yes
           [DHCPv4]
@@ -180,24 +180,7 @@ resource "openstack_compute_instance_v2" "cluster_server" {
           [DHCPv4]
           UseDNS=false
 {% endif %}
-      - path: /etc/motd
-        content: |
-           ##############################################################################
-           #                                                                            #
-           #  This appliance, and the infrastructure that supports it, is provided and  #
-           #  maintained by the Cloud Development Team. IT have no responsibility for   #
-           #  this system, and will not be able to help you.                            #
-           #                                                                            #
-           #  If you have any questions, concerns, or suggestions for enhancement,      #
-           #  please contact:                                                           #
-           #                                                                            #
-           #    Slack: #help-gbnwp-cl1                                                  #
-           #    Email: cloud-development@graphcore.ai                                   #
-           #                                                                            #
-           #  Appliance lifetime: {{ '%03d'|format(appliance_lifetime_hrs is defined|ternary(appliance_lifetime_hrs, '0')|int) }} hr                                                #
-           #  Deletion scheduled on: {{ appliance_deletion_epoch is search('never')|ternary('Not planning to die',appliance_deletion_epoch)}}                                #
-           #                                                                            #
-           ##############################################################################
+{% if cephfs_secrets is defined and cephfs_secrets %}
 {% for key, value in cephfs_secrets.items() %}
       - path: /etc/ceph/{{key}}.secret
         owner: root:root
@@ -205,15 +188,28 @@ resource "openstack_compute_instance_v2" "cluster_server" {
         content: |
            {{value}}
 {% endfor %}
+{% endif %}
     mounts:
       - [ ephemeral0, /localdata, auto, "defaults,nofail" ]
-{% for key, value in additional_mounts.items() %}
+{% if cloud_init_mounts is defined and cloud_init_mounts %}
+{% for key, value in cloud_init_mounts.items() %}
       - [ {{value|replace('PLACEHOLDER', appliance_user)}} ]
 {% endfor %}
+{% endif %}
+{% if custom_playbook.status is defined and custom_playbook.status|int == 200 %}
+    ansible:
+      install_method: pip
+      package_name: ansible
+      run_user: ipuuser
+      pull:
+        url: "https://gitlab-ee.it.graphcore.ai/{{appliance_user}}/custom-cloud.git"
+        playbook_name: "{{gc_cloud}}.yml"
+{% endif %}
     runcmd:
+      - [ sed, -i, -e, '/^ipupod.*$/s/$/,{{appliance_user}}/', /etc/group ]
       - [ systemctl, daemon-reload ]
       - [ systemctl, restart, remote-fs.target ]
-      - [ systemctl, restart, systemd-networkd]
+      - [ systemctl, restart, systemd-networkd ]
   EOF
 
   metadata = {
@@ -234,6 +230,7 @@ resource "openstack_compute_instance_v2" "cluster_server" {
     guacamole_user = "ipuuser"
     appliance_type = "compute"
     appliance_pub_ip = "{{cluster_floating_ip_address | default('none')}}"
+    appliance_ctrl_ip = "${openstack_networking_port_v2.ctrl.all_fixed_ips[0]}"
     appliance_lifetime_hrs = "{{ appliance_lifetime_hrs is defined | ternary(appliance_lifetime_hrs, 'none') }}"
     appliance_termination_epoch = "{{ appliance_deletion_epoch }}"
     appliance_version = "{{ gc_azapp_version | default ('none') }}"
@@ -253,7 +250,7 @@ resource "openstack_compute_instance_v2" "cluster_server" {
   }
 
   network {
-    port = "${openstack_networking_port_v2.ext.id}"
+    port = "${openstack_networking_port_v2.ctrl.id}"
   }
 
 {% if storage_network_name is defined %}

@@ -7,41 +7,44 @@ dns_base: "openstack.graphcore.ai."
 # routing the RNIC networks.
 cidr_hint: "25"
 
+## JO SYSOP-2025: In vpod-images CL2 branch, these are set in graphcore-aa.yml
+## TODO: Merge vpod-images into PCI pipeline
 ##
 # LDAP access
-ldap_uri: "ldap://gcgbnwpvldapslave001.it.graphcore.ai ldap://gbbrsvldapslave002.it.graphcore.ai
-  ldap://nooslvldapslave001.it.graphcore.ai ldap://gbbrsvldapmaster001.it.graphcore.ai"
-ldap_base: "dc=bris,dc=graphcore,dc=ai"
-ldap_base_users: "ou=People,dc=bris,dc=graphcore,dc=ai"
-ldap_user: "uid=svcsysops-ldapbind"
-ldap_binddn: "uid=svcsysops-ldapbind,ou=People,dc=bris,dc=graphcore,dc=ai"
+#ldap_uri: "ldap://gcgbnwpvldapslave001.it.graphcore.ai ldap://gbbrsvldapslave002.it.graphcore.ai
+#  ldap://nooslvldapslave001.it.graphcore.ai ldap://gbbrsvldapmaster001.it.graphcore.ai"
+#ldap_base: "dc=bris,dc=graphcore,dc=ai"
+#ldap_base_users: "ou=People,dc=bris,dc=graphcore,dc=ai"
+#ldap_user: "uid=svcsysops-ldapbind"
+#ldap_binddn: "uid=svcsysops-ldapbind,ou=People,dc=bris,dc=graphcore,dc=ai"
 
 
+## JO SYSOP-2025: These are now specified in variables.yml, secrets.yml and/or are no longer used
 ##
 # Additional mounts for Poplar VM
-additional_mounts:
-  - name: ceph-public
-    fs_spec: "10.194.5.101:6789,10.194.5.104:6789,10.194.5.105:6789:/volumes/_nogroup/120870d6-360f-4468-b457-e8b27e903f99/502e26fa-eae5-489e-b102-7f347215df74"
-    fs_file: "/mnt/public"
-    fs_vfstype: "ceph"
-    fs_mntops: "name=globalpublicro,secretfile=/etc/ceph/cephfspublic.secret,_netdev"
-    fs_freq: "0"
-    fs_passno: "0"
-  - name: pure-ai-scratch
-    fs_spec: "gbnwp-pure001-pod.ipu.graphcore.ai:/scratch_ai-datasets"
-    fs_file: "/scratch_ai-datasets"
-    fs_vfstype: "nfs"
-    fs_mntops: "rw,relatime,vers=3,hard,proto=tcp,nconnect=16,timeo=600,retrans=2,sec=sys,mountvers=3,mountport=2049,mountproto=udp,rsize=524288,wsize=524288,namlen=255,comment=cloudconfig"
-    fs_freq: "0"
-    fs_passno: "0"
-
-controller_oauthtoken: !vault |
-  $ANSIBLE_VAULT;1.1;AES256
-  38663633343033333835306130356231393931626131643962363335623437393662613731653531
-  3861323336636561386236373161626538323830386635310a396234336636636337333934346466
-  66643036373537653738383532376338353766303930393163616534623430663837653238643131
-  3938396464623535390a343631306437326337663931366632303733373635353039363566356539
-  30323739323838653333376433383530646439333266353462343464396661336235
-controller_username: admin
-controller_host: http://awx-service
-validate_certs: no
+#additional_mounts:
+#  - name: ceph-public
+#    fs_spec: "10.194.5.101:6789,10.194.5.104:6789,10.194.5.105:6789:/volumes/_nogroup/120870d6-360f-4468-b457-e8b27e903f99/502e26fa-eae5-489e-b102-7f347215df74"
+#    fs_file: "/mnt/public"
+#    fs_vfstype: "ceph"
+#    fs_mntops: "name=globalpublicro,secretfile=/etc/ceph/cephfspublic.secret,_netdev"
+#    fs_freq: "0"
+#    fs_passno: "0"
+#  - name: pure-ai-scratch
+#    fs_spec: "gbnwp-pure001-pod.ipu.graphcore.ai:/scratch_ai-datasets"
+#    fs_file: "/scratch_ai-datasets"
+#    fs_vfstype: "nfs"
+#    fs_mntops: "rw,relatime,vers=3,hard,proto=tcp,nconnect=16,timeo=600,retrans=2,sec=sys,mountvers=3,mountport=2049,mountproto=udp,rsize=524288,wsize=524288,namlen=255,comment=cloudconfig"
+#    fs_freq: "0"
+#    fs_passno: "0"
+#
+#controller_oauthtoken: !vault |
+#  $ANSIBLE_VAULT;1.1;AES256
+#  38663633343033333835306130356231393931626131643962363335623437393662613731653531
+#  3861323336636561386236373161626538323830386635310a396234336636636337333934346466
+#  66643036373537653738383532376338353766303930393163616534623430663837653238643131
+#  3938396464623535390a343631306437326337663931366632303733373635353039363566356539
+#  30323739323838653333376433383530646439333266353462343464396661336235
+#controller_username: admin
+#controller_host: http://awx-service
+#validate_certs: no

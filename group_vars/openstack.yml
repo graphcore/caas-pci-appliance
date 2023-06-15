@@ -6,15 +6,13 @@
 terraform_state_key: "cluster/{{ cluster_id }}/{{ role_name }}/tfstate"
 
 # Set up the terraform backend
-terraform_backend_type: "{{ 'consul' if 'CONSUL_HTTP_ADDR' in ansible_env else 'local'
-  }}"
+terraform_backend_type: "{{ 'consul' if 'CONSUL_HTTP_ADDR' in ansible_env else 'local' }}"
 terraform_backend_config_defaults:
   consul:
     path: "{{ terraform_state_key }}"
     gzip: "true"
   local: {}
-terraform_backend_config: "{{ terraform_backend_config_defaults[terraform_backend_type]
-  }}"
+terraform_backend_config: "{{ terraform_backend_config_defaults[terraform_backend_type] }}"
 
 terraform_binary_directory: "/usr/local/bin"
 terraform_binary_path: "{{ terraform_binary_directory }}/terraform"
