@@ -228,7 +228,7 @@ resource "openstack_compute_instance_v2" "cluster_server" {
     azimuth_project_name = "${data.openstack_identity_auth_scope_v3.scope.project_name}"
     azimuth_project_id = "${data.openstack_identity_auth_scope_v3.scope.project_id}"
     guacamole_user = "ipuuser"
-    appliance_type = "compute"
+    appliance_type = "pci"
     appliance_pub_ip = "{{cluster_floating_ip_address | default('none')}}"
     appliance_ctrl_ip = "${openstack_networking_port_v2.ctrl.all_fixed_ips[0]}"
     appliance_lifetime_hrs = "{{ appliance_lifetime_hrs is defined | ternary(appliance_lifetime_hrs, 'none') }}"
