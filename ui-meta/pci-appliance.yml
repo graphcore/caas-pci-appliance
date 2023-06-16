@@ -68,7 +68,7 @@ parameters:
 usage_template: |-
   {% set webconsole = cluster | service("webconsole") %}
   {% set monitoring = cluster | service("monitoring") %}
-  This compute appliance ({{cluster.outputs.cluster_operating_system}} size {{cluster.outputs.cluster_flavour_name}}) has a lifetime of {{cluster.outputs.cluster_lifetime}} hrs, and is scheduled for automatic deletion at {{cluster.outputs.cluster_termination_epoch}}.
+  This compute appliance ({{cluster.outputs.cluster_operating_system}} size {{cluster.outputs.cluster_flavour_name}}) has a lifetime of {{cluster.outputs.cluster_lifetime}} hrs, and is scheduled for automatic deletion at {{cluster.outputs.cluster_termination_epoch}}Z.
 
   You may access the appliance in a web browser via the [Web console service]({{ webconsole.url }}) and by SSH.  The SSH keys used are those in the Graphcore LDAP service. SSH is configured to allow login only by the appliance creator and Cloud Development engineers. Further users may be enabled by adding them to the `ipupod` group. The web console logs in as user `ipuuser` automatically.
 
@@ -76,6 +76,11 @@ usage_template: |-
 
   ```
   $ ssh {{ cluster.outputs.cluster_user | default("ubuntu") }}@{{ cluster.outputs.cluster_access_ip | default("[cluster ip]") }}
+  ```
+
+  Alternatively, if you have another appliance you can jump through that to connect with this one:
+  ```
+  $ ssh -J <other_appliance> {{ cluster.outputs.cluster_user | default("ubuntu") }}@{{ cluster.outputs.cluster_ctrl_ip | default("[cluster ip]") }}
   ```
 
   The following environment variables have been set in the appliance:
@@ -90,6 +95,7 @@ usage_template: |-
 
   Monitoring dashboards for the appliance are available using the [Monitoring service]({{ monitoring.url }}).
 
+  Appliance version: {{ cluster.outputs.cluster_version }}
 
 services:
   - name: webconsole
