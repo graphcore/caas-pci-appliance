@@ -16,10 +16,25 @@
     cmd: openstack token issue -f value -c project_id
   register: openstack_cli_proj
 
-- name: Get tenancy name
+- name: Get user's quotas and usage
   ansible.builtin.shell:
-    cmd: openstack project show "$(openstack token issue -f value -c project_id)" -f value -c name
-  register: openstack_cli_tenancy_name
+    cmd: openstack limits show --absolute -f json
+  register: openstack_cli_limits
+
+- name: Create quota/usage dict
+  ansible.builtin.set_fact:
+    quota_usage_dict: "{{ openstack_cli_limits.stdout | from_json | items2dict(key_name='Name', value_name='Value') }}"
+
+- name: Debug quotas and usage
+  ansible.builtin.debug:
+    var: quota_usage_dict
+
+- name: Fail if request would exceed quota
+  ansible.builtin.fail:
+    msg: "Requested flavour would exceed your CPU core quota"
+  when:
+    - (quota_usage_dict.totalCoresUsed | int + appliance_flavour | regex_search('([0-9]+) AMD|Intel cpus', '\\1') | first | int) > quota_usage_dict.maxTotalCores | int
+    - terraform_state is search("present")
 
 - name: Include the vars we need
   ansible.builtin.include_vars:
@@ -67,7 +82,6 @@
   ansible.builtin.set_fact:
     appliance_user: "{{ ldap_uid_out.results[0].uid | lower if ldap_uid_out.results | length > 0 else 'default1' | default('default2') }}"
     appliance_project: "{{ openstack_cli_proj.stdout | default( 'ipuops') }}"
-    appliance_tenancy: "{{ openstack_cli_tenancy_name.stdout | default( 'ipuops') }}"
     appcred_name: "{{ cluster_name }}_{{ cluster_id }}"
 
 # TODO: get CRD to inject its calcuated delete time
