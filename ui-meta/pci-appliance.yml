@@ -2,7 +2,7 @@
 
 name: "pci-appliance"
 label: "Graphcore PCI Appliance"
-description: Linux host with Graphcore PCI cards accessible via a web browser and by LDAP SSH.
+description: Linux host with Graphcore PCI cards
 logo: https://raw.githubusercontent.com/graphcore/caas-pci-appliance/main/assets/graphcore.png
 
 parameters:
