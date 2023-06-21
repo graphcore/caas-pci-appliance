@@ -7,7 +7,7 @@ logo: https://raw.githubusercontent.com/graphcore/caas-pci-appliance/main/assets
 
 parameters:
   - name: operating_system
-    label: "Select operating system"
+    label: "Select operating system (no drivers in 22.04)"
     description: |-
       The operating system to install in appliance.
     kind: choice
@@ -15,6 +15,7 @@ parameters:
     options:
       choices:
         - "Ubuntu 20.04"
+        - "Ubuntu 22.04"
     immutable: true
 
   # - name: cluster_flavor
