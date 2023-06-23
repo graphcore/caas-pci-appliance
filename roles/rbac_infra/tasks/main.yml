@@ -1,17 +1,4 @@
 # Here we RBAC the various networks
-- name: decrypt clouds.yaml
-  ansible.builtin.copy:
-    decrypt: yes
-    src: "{{playbook_dir}}/files/clouds-{{gc_tenancy | default(gc_cloud)}}.yaml"
-    dest: "/tmp/{{ gc_cloud }}.yaml"
-    mode: 0666
-  when: admin_clouds_yaml is not defined
-
-- name: Set clouds.yaml location if missing
-  ansible.builtin.set_fact:
-    admin_clouds_yaml: "/tmp/{{ gc_cloud }}.yaml"
-  when: admin_clouds_yaml is not defined
-
 - name: Get ID of common_ctrl network
   openstack.cloud.networks_info:
     cloud: openstack
@@ -19,11 +6,6 @@
   register: ctrl_result
   environment:
     OS_CLIENT_CONFIG_FILE: "{{ admin_clouds_yaml }}"
-
-- name: Debug ctrl_network result
-  ansible.builtin.debug:
-    msg: "Ctrl network output {{ ctrl_result }}"
-# Ensure azimuth-vpod-common-ctrl RBAC policy exists
 
 - name: Create common-ctrl network RBAC policy
   openstack.cloud.neutron_rbac_policy:
