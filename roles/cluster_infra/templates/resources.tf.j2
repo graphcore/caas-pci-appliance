@@ -196,7 +196,7 @@ resource "openstack_compute_instance_v2" "cluster_server" {
       - [ {{value|replace('PLACEHOLDER', appliance_user)}} ]
 {% endfor %}
 {% endif %}
-{% if custom_playbook.status is defined and custom_playbook.status|int == 200 %}
+{% if custom_playbook.status is defined and custom_playbook.status|int == 200 and 'sign_in' not in custom_playbook.url %}
     ansible:
       install_method: pip
       package_name: ansible
