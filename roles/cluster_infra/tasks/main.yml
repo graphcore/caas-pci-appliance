@@ -91,3 +91,25 @@
     cluster_ctrl_ip: "{{ terraform_provision.outputs.appliance_ctrl_ip.value }}"
   when:
     - (terraform_state == "present") or (terraform_state == "update")
+
+- name: If configured, wait for cloud-init ansible-pull to complete
+  ansible.builtin.command:
+    cmd: "ssh -i {{ cluster_ssh_private_key_file }} {{ vipu_ssh_extra }} ipuuser@{{ cluster_floating_ip_address }} cloud-init status --long"
+  register: cloud_init_status
+  changed_when: false
+  retries: 60
+  delay: 10
+  until:
+    - (cloud_init_status.stdout is search("status..error")) or (cloud_init_status.stdout is search("status..done"))
+  ignore_errors: true
+  when:
+    - terraform_state == "present" or terraform_state == "update"
+    - custom_playbook.status is defined and custom_playbook.status|int == 200
+
+- name: If configured, and ansible-pull failed in cloud-init, alert user
+  ansible.builtin.fail:
+    msg: Ansible customization playbook failed
+  when:
+    - terraform_state == "present" or terraform_state == "update"
+    - custom_playbook.status is defined and custom_playbook.status|int == 200
+    - cloud_init_status.stdout is search("status..error")
