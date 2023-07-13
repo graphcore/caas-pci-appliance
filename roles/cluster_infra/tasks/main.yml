@@ -104,12 +104,12 @@
   ignore_errors: true
   when:
     - terraform_state == "present" or terraform_state == "update"
-    - custom_playbook.status is defined and custom_playbook.status|int == 200
+    - custom_playbook.status is defined and custom_playbook.status|int == 200 and 'sign_in' not in custom_playbook.url
 
 - name: If configured, and ansible-pull failed in cloud-init, alert user
   ansible.builtin.fail:
-    msg: Ansible customization playbook failed
+    msg: Ansible customization playbook failed, but the appliance is likely still available
   when:
     - terraform_state == "present" or terraform_state == "update"
-    - custom_playbook.status is defined and custom_playbook.status|int == 200
-    - cloud_init_status.stdout is search("status..error")
+    - custom_playbook.status is defined and custom_playbook.status|int == 200 and 'sign_in' not in custom_playbook.url
+    - cloud_init_status.stdout is search("status..error") or cloud_init_status.retries | int >= 60

@@ -151,6 +151,10 @@ resource "openstack_compute_instance_v2" "cluster_server" {
 
   user_data = <<-EOF
     #cloud-config
+    users:
+      - name: ipuuser
+        ssh_authorized_keys:
+          - {{ cluster_deploy_ssh_public_key }}
     write_files:
       - path: /etc/systemd/network/05-ctrl.network
         content: |
