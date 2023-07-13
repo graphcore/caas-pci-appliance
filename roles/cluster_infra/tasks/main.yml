@@ -112,4 +112,4 @@
   when:
     - terraform_state == "present" or terraform_state == "update"
     - custom_playbook.status is defined and custom_playbook.status|int == 200 and 'sign_in' not in custom_playbook.url
-    - cloud_init_status.stdout is search("status..error") or cloud_init_status.retries | int >= 60
+    - cloud_init_status.stdout is search("status..error") or cloud_init_status.attempts | int >= 60
