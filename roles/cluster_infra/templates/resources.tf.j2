@@ -214,6 +214,7 @@ resource "openstack_compute_instance_v2" "cluster_server" {
       - [ systemctl, daemon-reload ]
       - [ systemctl, restart, remote-fs.target ]
       - [ systemctl, restart, systemd-networkd ]
+      - [ chmod, a+rwx , /localdata ]
   EOF
 
   metadata = {
